@@ -24,7 +24,7 @@ const getReleaseTags = async (): Promise<
 const getReleaseCommits = async (
   toTag: string,
   fromTag: string,
-  blacklistPattern: string
+  blacklistPattern?: string
 ): Promise<Commit[]> => {
   const separator = '_||_';
   const command = `git log ${fromTag}..${toTag} --no-merges --pretty=format:"%ad${separator}%h${separator}%ae${separator}%s"`;
@@ -42,11 +42,16 @@ const getReleaseCommits = async (
       } as Commit;
     })
     .filter((commit) => {
+      if (!blacklistPattern) {
+        return true;
+      }
       return !new RegExp(blacklistPattern, 'gm').test(commit.subject);
     });
 };
 
-export const groupCommitsByTags = async (blacklistPattern = '') => {
+export const groupCommitsByTags = async (
+  blacklistPattern: string | undefined
+) => {
   const releaseCommits = [];
 
   const headTag = {
