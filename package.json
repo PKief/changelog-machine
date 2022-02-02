@@ -1,7 +1,7 @@
 {
-  "name": "material-color-linter",
+  "name": "changelog-machine",
   "version": "1.0.0",
-  "description": "",
+  "description": "CLI tool to generate a changelog based on Git commit messages and tags",
   "main": "./lib/cjs/index.js",
   "module": "./lib/esm/index.js",
   "scripts": {
