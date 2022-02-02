@@ -1,4 +1,4 @@
-import { TagGroup } from './models';
+import { TagGroup } from '../models';
 
 export const createReleaseSubtitle = (
   group: TagGroup,
@@ -32,7 +32,7 @@ export const createCommitList = (
   group: TagGroup,
   repository: string | undefined
 ) => {
-  return group.commits.reduce((result, commit) => {
+  return group.commits.reduce<string>((result, commit) => {
     const ticket = ticketRecognition(commit.subject);
     let reference = '';
 

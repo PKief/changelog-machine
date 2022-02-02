@@ -1,11 +1,14 @@
 {
   "name": "changelog-machine",
-  "version": "1.0.0",
+  "version": "0.1.1",
   "description": "CLI tool to generate a changelog based on Git commit messages and tags",
   "main": "./lib/cjs/index.js",
   "module": "./lib/esm/index.js",
+  "bin": {
+    "changelog-cli": "./bin/cli.js"
+  },
   "scripts": {
-    "build": "tsc -p tsconfig.json && tsc -p tsconfig-cjs.json",
+    "build": "tsc -p tsconfig.json",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint -c .eslintrc.json --ext .ts ./src/**/*.ts",
     "prepublish": "npm run build"
@@ -17,10 +20,12 @@
     "Changelog",
     "Markdown"
   ],
+  "engines": {
+    "node": ">=4.2.0"
+  },
   "author": "Philipp Kief",
   "license": "MIT",
   "devDependencies": {
-    "@types/chroma-js": "^2.1.3",
     "@types/minimist": "^1.2.2",
     "@typescript-eslint/eslint-plugin": "^5.4.0",
     "@typescript-eslint/parser": "^5.4.0",
@@ -31,7 +36,6 @@
     "typescript": "^4.5.5"
   },
   "dependencies": {
-    "chroma-js": "^2.1.2",
     "minimist": "^1.2.5"
   }
 }

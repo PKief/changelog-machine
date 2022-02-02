@@ -1,4 +1,4 @@
-import { Commit } from './models';
+import { Commit } from '../models';
 import { execAsync } from './utils';
 
 const getReleaseTags = async (): Promise<

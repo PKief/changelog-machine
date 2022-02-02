@@ -1,13 +1,13 @@
 import { readFile, writeFile } from 'fs';
 import minimist from 'minimist';
 import { promisify } from 'util';
-import { groupCommitsByTags } from './git';
+import { Config, TagGroup } from '../models';
+import { groupCommitsByTags } from '../utils/git';
 import {
   createCommitList,
   createDateInformation,
   createReleaseSubtitle,
-} from './markdown';
-import { Config, TagGroup } from './models';
+} from '../utils/markdown';
 
 const writeFileAsync = promisify(writeFile);
 const readFileAsync = promisify(readFile);
