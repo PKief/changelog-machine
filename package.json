@@ -5,7 +5,7 @@
   "main": "./lib/cjs/index.js",
   "module": "./lib/esm/index.js",
   "bin": {
-    "changelog-cli": "./bin/cli.js"
+    "changelog-machine": "./bin/cli.js"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
