@@ -1,5 +1,5 @@
 export interface Commit {
-  date: string;
+  date: Date;
   hash: string;
   author: string;
   subject: string;

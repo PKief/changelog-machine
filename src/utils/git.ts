@@ -35,7 +35,7 @@ const getReleaseCommits = async (
     .map((message) => {
       const data = message.split(separator);
       return {
-        date: data[0],
+        date: new Date(data[0]),
         hash: data[1],
         author: data[2],
         subject: data[3],
