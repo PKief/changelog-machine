@@ -2,8 +2,8 @@
   "name": "changelog-machine",
   "version": "0.1.6",
   "description": "Changelog generator based on Git commit messages and tags",
-  "main": "./lib/cjs/index.js",
-  "module": "./lib/esm/index.js",
+  "main": "./lib/index.js",
+  "module": "./lib/index.js",
   "bin": {
     "changelog-machine": "./bin/cli.js"
   },

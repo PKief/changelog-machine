@@ -29,23 +29,51 @@ const createMarkdown = (
 };
 
 const run = async () => {
-  const { version, config: configFilePath } = minimist(process.argv.slice(2));
-  if (version) {
+  const args = minimist<{
+    version: undefined;
+    config: string;
+  }>(process.argv.slice(2), {
+    // eslint-disable-next-line id-blacklist
+    string: 'config',
+    // eslint-disable-next-line id-blacklist
+    boolean: ['version', 'help'],
+    alias: { v: 'version', h: 'help' },
+    unknown: (a) => {
+      console.log(
+        `The argument '${a}' is invalid for this command. Please use --help to read the description of this command.`
+      );
+      return false;
+    },
+  });
+  if (args.version) {
     return console.log(
       `${process.env.npm_package_name} v${process.env.npm_package_version}`
+    );
+  }
+  if (args.help) {
+    return console.log(
+      `
+Usage
+  $ npx changelog-machine -c changelog.config.json
+
+Options
+  --config, -c  Path to the configuration file
+  --version, -v  Show version
+  --help, -h  Show help
+  `
     );
   }
   let config: Config = {
     outputFilename: 'CHANGELOG.md',
   };
 
-  if (configFilePath) {
+  if (args.config) {
     try {
-      const file = await readFileAsync(configFilePath);
+      const file = await readFileAsync(args.config);
       config = { ...config, ...(JSON.parse(file.toLocaleString()) as Config) };
     } catch (error) {
       throw new Error(
-        `Unable to read the config file at the location ${configFilePath}\n` +
+        `Unable to read the config file at the location ${args.config}\n` +
           error ?? ''
       );
     }
