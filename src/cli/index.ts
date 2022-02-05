@@ -29,7 +29,12 @@ const createMarkdown = (
 };
 
 const run = async () => {
-  const { config: configFilePath } = minimist(process.argv.slice(2));
+  const { version, config: configFilePath } = minimist(process.argv.slice(2));
+  if (version) {
+    return console.log(
+      `${process.env.npm_package_name} v${process.env.npm_package_version}`
+    );
+  }
   let config: Config = {
     outputFilename: 'CHANGELOG.md',
   };
