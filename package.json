@@ -1,7 +1,7 @@
 {
   "name": "changelog-machine",
-  "version": "0.1.5",
-  "description": "CLI tool to generate a changelog based on Git commit messages and tags",
+  "version": "0.1.6",
+  "description": "Changelog generator based on Git commit messages and tags",
   "main": "./lib/cjs/index.js",
   "module": "./lib/esm/index.js",
   "bin": {
@@ -18,7 +18,7 @@
   ],
   "keywords": [
     "Changelog",
-    "Markdown"
+    "Generator"
   ],
   "engines": {
     "node": ">=4.2.0"
