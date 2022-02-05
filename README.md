@@ -34,7 +34,7 @@ The configuration file can be configured like this:
 ```json
 {
   "repoName": "https://github.com/PKief/vscode-material-icon-theme",
-  "blacklistPattern": "/Release|^d+.d+.d+$/",
+  "blacklistPattern": "Release|^\\d+\\.\\d+\\.\\d+$",
   "outputFilename": "CHANGELOG.md"
 }
 ```
