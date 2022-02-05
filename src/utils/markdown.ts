@@ -1,6 +1,22 @@
 import { TagGroup } from '../models';
 
-export const createReleaseSubtitle = (
+const createLink = (linkText: string, url: string) => {
+  return `[${linkText}](${url})`;
+};
+
+const formatDate = (date: Date) => {
+  return date.toLocaleString('en', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
+};
+
+const ticketRecognition = (commitMessage: string): string | undefined => {
+  return commitMessage.match(/\((?<ticket>#\d+)\)/)?.groups?.ticket;
+};
+
+const createReleaseSubtitle = (
   group: TagGroup,
   repository: string | undefined
 ) => {
@@ -12,26 +28,11 @@ export const createReleaseSubtitle = (
   return `#### ${repository ? subtitle : subtitleLinkText}`;
 };
 
-export const createLink = (linkText: string, url: string) => {
-  return `[${linkText}](${url})`;
-};
-
-export const formatDate = (date: Date) => {
-  return date.toLocaleString('en', {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
-  });
-};
-
-export const createDateInformation = (group: TagGroup) => {
+const createDateInformation = (group: TagGroup) => {
   return `> ${formatDate(group.date)}`;
 };
 
-export const createCommitList = (
-  group: TagGroup,
-  repository: string | undefined
-) => {
+const createCommitList = (group: TagGroup, repository: string | undefined) => {
   return group.commits.reduce<string>((result, commit) => {
     const ticket = ticketRecognition(commit.subject);
     let reference = '';
@@ -54,6 +55,4 @@ export const createCommitList = (
   }, '');
 };
 
-const ticketRecognition = (commitMessage: string): string | undefined => {
-  return commitMessage.match(/\((?<ticket>#\d+)\)/)?.groups?.ticket;
-};
+export { createCommitList, createDateInformation, createReleaseSubtitle };
