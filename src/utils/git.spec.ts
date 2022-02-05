@@ -1,17 +1,9 @@
-import { MockedFunction } from 'ts-jest/dist/utils/testing';
-import { mocked } from 'ts-jest/utils';
 import { groupCommitsByTags } from './git';
-import { execAsync } from './utils';
+import { createExecAsyncMock, mockNewDateTime } from './test-helpers';
 
-jest.useFakeTimers().setSystemTime(new Date('2022-02-08').getTime());
-
+mockNewDateTime();
 jest.mock('./utils');
-const mockExecAsync = mocked(execAsync) as unknown as MockedFunction<
-  () => Promise<{
-    stdout: string;
-    stderr: string;
-  }>
->;
+const mockExecAsync = createExecAsyncMock();
 
 describe('Git utils', () => {
   it('should return empty list if no commits made yet', async () => {
