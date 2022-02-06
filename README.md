@@ -27,6 +27,14 @@ The generation of the changelog can be configured via a config file.
 npx changelog-machine --config changelog.config.json
 ```
 
+### Command overview
+
+| COMMAND   | ALIAS | DESCRIPTION                    |
+| --------- | ----- | ------------------------------ |
+| --config  | -c    | Path to the configuration file |
+| --version | -v    | Print version                  |
+| --help    | -h    | Print command instructions     |
+
 ### Configuration file
 
 The configuration file can be configured like this:
@@ -38,3 +46,17 @@ The configuration file can be configured like this:
   "outputFilename": "CHANGELOG.md"
 }
 ```
+
+## Example output
+
+The following commit summary is printed into the CHANGELOG.md file and can look like this:
+
+#### [v4.12.1](https://github.com/PKief/vscode-material-icon-theme/compare/v4.12.1...HEAD)
+
+> February 5, 2022
+
+- Update release commit message [`3167316`](https://github.com/PKief/vscode-material-icon-theme/commit/3167316)
+- Update release workflow [`7f2520d`](https://github.com/PKief/vscode-material-icon-theme/commit/7f2520d)
+- Adjust preview script for folder icons [`6a00111`](https://github.com/PKief/vscode-material-icon-theme/commit/6a00111)
+- Fix compare link [`fa45abf`](https://github.com/PKief/vscode-material-icon-theme/commit/fa45abf)
+- Filter out release commits [`e3468ca`](https://github.com/PKief/vscode-material-icon-theme/commit/e3468ca)
