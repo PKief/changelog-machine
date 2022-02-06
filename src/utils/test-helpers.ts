@@ -1,6 +1,6 @@
 import { MockedFunction } from 'ts-jest/dist/utils/testing';
 import { mocked } from 'ts-jest/utils';
-import { execAsync } from './utils';
+import { execAsync } from './promisify';
 
 export const createExecAsyncMock = () => {
   const mockExecAsync = mocked(execAsync) as unknown as MockedFunction<

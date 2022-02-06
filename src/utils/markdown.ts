@@ -55,4 +55,20 @@ const createCommitList = (group: TagGroup, repository: string | undefined) => {
   }, '');
 };
 
-export { createCommitList, createDateInformation, createReleaseSubtitle };
+const createMarkdown = (
+  title: string,
+  tagGroups: TagGroup[],
+  repository: string | undefined
+) => {
+  return (
+    title +
+    tagGroups.reduce((markdown, group) => {
+      const subtitle = createReleaseSubtitle(group, repository);
+      const date = createDateInformation(group);
+      const commitList = createCommitList(group, repository);
+      return `${markdown} \n${subtitle} \n\n${date} \n\n${commitList}`;
+    }, '')
+  );
+};
+
+export { createMarkdown };
