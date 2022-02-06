@@ -1,3 +1,1 @@
-export * from './utils/git';
-export * from './utils/markdown';
-export * from './utils/promisify';
+export * from './cli/commands/printMarkdown';
