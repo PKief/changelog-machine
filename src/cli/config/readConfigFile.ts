@@ -1,5 +1,5 @@
 import { Config } from '../../models';
-import { readFileAsync } from '../../utils/promisify';
+import { readFileAsync } from '../../utils/async';
 
 const readConfigFile = async (configFilePath: string) => {
   try {

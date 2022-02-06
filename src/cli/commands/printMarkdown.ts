@@ -1,7 +1,7 @@
 import { Config } from '../../models';
 import { groupCommitsByTags } from '../../utils/git';
 import { createMarkdown } from '../../utils/markdown';
-import { writeFileAsync } from '../../utils/promisify';
+import { writeFileAsync } from '../../utils/async';
 import { defaultConfig } from '../config/default';
 
 const printMarkdown = async (config?: Config) => {
@@ -12,10 +12,14 @@ const printMarkdown = async (config?: Config) => {
   }\n\n`;
   const output = createMarkdown(title, tagGroups, config?.repoName);
 
-  await writeFileAsync(
-    config?.outputFilename ?? defaultConfig.outputFilename,
-    output
-  );
+  try {
+    await writeFileAsync(
+      config?.outputFilename ?? defaultConfig.outputFilename,
+      output
+    );
+  } catch (error) {
+    console.error(error);
+  }
 };
 
 export { printMarkdown };

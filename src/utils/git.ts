@@ -1,5 +1,5 @@
 import { Commit } from '../models';
-import { execAsync } from './promisify';
+import { execAsync } from './async';
 
 const getReleaseTags = async (): Promise<
   {
