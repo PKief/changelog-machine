@@ -29,11 +29,11 @@ npx changelog-machine --config changelog.config.json
 
 ### Command overview
 
-| COMMAND   | ALIAS | DESCRIPTION                    |
-| --------- | ----- | ------------------------------ |
-| --config  | -c    | Path to the configuration file |
-| --version | -v    | Print version                  |
-| --help    | -h    | Print command instructions     |
+| COMMAND     | ALIAS | DESCRIPTION                    |
+| ----------- | ----- | ------------------------------ |
+| `--config`  | `-c`  | Path to the configuration file |
+| `--version` | `-v`  | Print version                  |
+| `--help`    | `-h`  | Print command instructions     |
 
 ### Configuration file
 
@@ -41,11 +41,23 @@ The configuration file can be configured like this:
 
 ```json
 {
+  "title": "Changelog",
+  "description": "Some description text",
   "repoName": "https://github.com/PKief/vscode-material-icon-theme",
   "blacklistPattern": "Release|^\\d+\\.\\d+\\.\\d+$",
   "outputFilename": "CHANGELOG.md"
 }
 ```
+
+More detailed description of the config:
+
+| CONFIG             | DESCRIPTION                                     | DEFAULT                                                                                            |
+| ------------------ | ----------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `title`            | Title of the changelog                          | "Changelog"                                                                                        |
+| `description`      | Description under the title                     | "All notable changes to this project will be documented in this file. Dates are displayed in UTC." |
+| `outputFilename`   | Path of the output file                         | "CHANGELOG.md"                                                                                     |
+| `repoName`         | Links to the repository for further information |                                                                                                    |
+| `blacklistPattern` | Regex to remove commit messages                 |                                                                                                    |
 
 ## Example output
 
@@ -60,3 +72,37 @@ The following commit summary is printed into the CHANGELOG.md file and can look 
 - Adjust preview script for folder icons [`6a00111`](https://github.com/PKief/vscode-material-icon-theme/commit/6a00111)
 - Fix compare link [`fa45abf`](https://github.com/PKief/vscode-material-icon-theme/commit/fa45abf)
 - Filter out release commits [`e3468ca`](https://github.com/PKief/vscode-material-icon-theme/commit/e3468ca)
+
+## Programmatic use
+
+The tool can be imported as module into existing JavaScript or TypeScript code. Therefor it is necessary to install it via npm or yarn:
+
+NPM:
+
+```
+npm install --save-dev changelog-machine
+```
+
+Yarn:
+
+```
+yarn add --dev changelog-machine
+```
+
+The module can be imported like this:
+
+```ts
+import { printMarkdown } from 'changelog-machine';
+
+// usage with default config
+printMarkdown();
+
+// usage with customizations
+printMarkdown({
+  outputFilename: 'CHANGES.md',
+  description: 'List of changes',
+  title: 'All releases',
+  blacklistPattern: '^Release', // excludes all commits that start with "Release"
+  repoName: 'https://github.com/PKief/vscode-material-icon-theme',
+});
+```
