@@ -1,7 +1,7 @@
 import { Config } from '../../models';
+import { outputFile } from '../../utils/async';
 import { groupCommitsByTags } from '../../utils/git';
 import { createMarkdown } from '../../utils/markdown';
-import { writeFileAsync } from '../../utils/async';
 import { defaultConfig } from '../config/default';
 
 const printMarkdown = async (config?: Config) => {
@@ -13,7 +13,7 @@ const printMarkdown = async (config?: Config) => {
   const output = createMarkdown(title, tagGroups, config?.repoName);
 
   try {
-    await writeFileAsync(
+    await outputFile(
       config?.outputFilename ?? defaultConfig.outputFilename,
       output
     );
