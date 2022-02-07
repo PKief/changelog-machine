@@ -4,7 +4,7 @@ export interface Config {
    * @default `CHANGELOG.md`
    * @optional
    */
-  outputFilename?: string;
+  filePath?: string;
 
   /**
    * Title of the page
@@ -21,10 +21,10 @@ export interface Config {
   description?: string;
 
   /**
-   * Link to the repository
+   * URL of the repository
    * @optional If not set, no links will be provided.
    */
-  repoName?: string;
+  repositoryUrl?: string;
 
   /**
    * Regular expression pattern to exclude commit messages

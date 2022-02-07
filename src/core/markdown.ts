@@ -71,9 +71,9 @@ const createMarkdown = async (config?: Config) => {
   return (
     title +
     tagGroups.reduce((markdown, group) => {
-      const subtitle = createReleaseSubtitle(group, config?.repoName);
+      const subtitle = createReleaseSubtitle(group, config?.repositoryUrl);
       const date = createDateInformation(group);
-      const commitList = createCommitList(group, config?.repoName);
+      const commitList = createCommitList(group, config?.repositoryUrl);
       return `${markdown} \n${subtitle} \n\n${date} \n\n${commitList}`;
     }, '')
   );

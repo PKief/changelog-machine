@@ -43,9 +43,9 @@ The configuration file can be configured like this:
 {
   "title": "Changelog",
   "description": "Some description text",
-  "repoName": "https://github.com/PKief/vscode-material-icon-theme",
+  "repositoryUrl": "https://github.com/PKief/vscode-material-icon-theme",
   "blacklistPattern": "Release|^\\d+\\.\\d+\\.\\d+$",
-  "outputFilename": "CHANGELOG.md"
+  "filePath": "CHANGELOG.md"
 }
 ```
 
@@ -55,8 +55,8 @@ More detailed description of the config:
 | ------------------ | ----------------------------------------------- | -------------------------------------------------------------------------------------------------- |
 | `title`            | Title of the changelog                          | "Changelog"                                                                                        |
 | `description`      | Description under the title                     | "All notable changes to this project will be documented in this file. Dates are displayed in UTC." |
-| `outputFilename`   | Path of the output file                         | "CHANGELOG.md"                                                                                     |
-| `repoName`         | Links to the repository for further information |                                                                                                    |
+| `filePath`         | Path of the output file                         | "CHANGELOG.md"                                                                                     |
+| `repositoryUrl`    | Links to the repository for further information |                                                                                                    |
 | `blacklistPattern` | Regex to remove commit messages                 |                                                                                                    |
 
 ## Example output
@@ -99,10 +99,10 @@ printMarkdown();
 
 // usage with customizations
 printMarkdown({
-  outputFilename: 'CHANGES.md',
+  filePath: './changelog/CHANGES.md',
   description: 'List of changes',
   title: 'All releases',
   blacklistPattern: '^Release', // excludes all commits that start with "Release"
-  repoName: 'https://github.com/PKief/vscode-material-icon-theme',
+  repositoryUrl: 'https://github.com/PKief/vscode-material-icon-theme',
 });
 ```

@@ -7,10 +7,7 @@ const printMarkdown = async (config?: Config) => {
   const output = await createMarkdown(config);
 
   try {
-    await outputFile(
-      config?.outputFilename ?? defaultConfig.outputFilename,
-      output
-    );
+    await outputFile(config?.filePath ?? defaultConfig.outputFilename, output);
   } catch (error) {
     console.error(error);
   }
