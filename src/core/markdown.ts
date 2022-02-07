@@ -22,8 +22,10 @@ const createReleaseSubtitle = (
   group: TagGroup,
   repository?: string | undefined
 ) => {
-  const subtitleLinkText =
-    group.tag === 'HEAD' ? 'v' + process.env.npm_package_version : group.tag;
+  const latestTag = 'v' + process.env.npm_package_version;
+  const latestVersion =
+    latestTag === group.previousTag ? 'Unreleased changes' : latestTag;
+  const subtitleLinkText = group.tag === 'HEAD' ? latestVersion : group.tag;
   const subtitleLink = `${repository}/compare/${group.previousTag}...${group.tag}`;
 
   const subtitle = `${createLink(subtitleLinkText, subtitleLink)}`;
