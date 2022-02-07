@@ -52,7 +52,8 @@ const createCommitList = (group: TagGroup, repository: string | undefined) => {
         : commitHashText;
     }
     return (
-      result + `- ${commit.subject.replace(/[<<]/, '&lt;')} ${reference}\n`
+      result +
+      `- ${commit.subject.replace(/[<<]/, '&lt;').trim()} ${reference}\n`
     );
   }, '');
 };
@@ -63,10 +64,10 @@ const createCommitList = (group: TagGroup, repository: string | undefined) => {
  * @returns Text in Markdown syntax
  */
 const createMarkdown = async (config?: Config) => {
-  const tagGroups = await groupCommitsByTags(config?.blacklistPattern);
   const title = `### ${config?.title ?? defaultConfig.title} \n\n ${
     config?.description ?? defaultConfig.description
   }\n\n`;
+  const tagGroups = await groupCommitsByTags(config?.blacklistPattern);
 
   return (
     title +

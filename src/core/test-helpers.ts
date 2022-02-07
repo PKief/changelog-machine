@@ -1,5 +1,5 @@
+import { mocked } from 'jest-mock';
 import { MockedFunction } from 'ts-jest/dist/utils/testing';
-import { mocked } from 'ts-jest/utils';
 import { execAsync } from './async';
 
 export const createExecAsyncMock = () => {
