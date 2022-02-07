@@ -1,4 +1,6 @@
-import { TagGroup } from '../models';
+import { Config, TagGroup } from '../models';
+import { defaultConfig } from './default';
+import { groupCommitsByTags } from './git';
 
 const createLink = (linkText: string, url: string) => {
   return `[${linkText}](${url})`;
@@ -18,7 +20,7 @@ const ticketRecognition = (commitMessage: string): string | undefined => {
 
 const createReleaseSubtitle = (
   group: TagGroup,
-  repository: string | undefined
+  repository?: string | undefined
 ) => {
   const subtitleLinkText =
     group.tag === 'HEAD' ? 'v' + process.env.npm_package_version : group.tag;
@@ -55,17 +57,23 @@ const createCommitList = (group: TagGroup, repository: string | undefined) => {
   }, '');
 };
 
-const createMarkdown = (
-  title: string,
-  tagGroups: TagGroup[],
-  repository: string | undefined
-) => {
+/**
+ * Returns a changelog formatted in Markdown syntax
+ * @param config Config
+ * @returns Text in Markdown syntax
+ */
+const createMarkdown = async (config?: Config) => {
+  const tagGroups = await groupCommitsByTags(config?.blacklistPattern);
+  const title = `### ${config?.title ?? defaultConfig.title} \n\n ${
+    config?.description ?? defaultConfig.description
+  }\n\n`;
+
   return (
     title +
     tagGroups.reduce((markdown, group) => {
-      const subtitle = createReleaseSubtitle(group, repository);
+      const subtitle = createReleaseSubtitle(group, config?.repoName);
       const date = createDateInformation(group);
-      const commitList = createCommitList(group, repository);
+      const commitList = createCommitList(group, config?.repoName);
       return `${markdown} \n${subtitle} \n\n${date} \n\n${commitList}`;
     }, '')
   );

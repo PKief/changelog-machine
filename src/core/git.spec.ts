@@ -2,7 +2,7 @@ import { groupCommitsByTags } from './git';
 import { createExecAsyncMock, mockNewDateTime } from './test-helpers';
 
 mockNewDateTime();
-jest.mock('./utils');
+jest.mock('./async');
 const mockExecAsync = createExecAsyncMock();
 
 describe('Git utils', () => {

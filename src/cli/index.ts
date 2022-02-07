@@ -3,7 +3,7 @@ import { Config } from '../models';
 import { printHelp } from './commands/printHelp';
 import { printMarkdown } from './commands/printMarkdown';
 import { printVersion } from './commands/printVersion';
-import { defaultConfig } from './config/default';
+import { defaultConfig } from '../core/default';
 import { flags } from './config/options';
 import { readConfigFile } from './config/readConfigFile';
 

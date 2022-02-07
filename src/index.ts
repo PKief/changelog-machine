@@ -1,1 +1,1 @@
-export * from './cli/commands/printMarkdown';
+export * from './core/markdown';

@@ -1,16 +1,10 @@
 import { Config } from '../../models';
-import { outputFile } from '../../utils/async';
-import { groupCommitsByTags } from '../../utils/git';
-import { createMarkdown } from '../../utils/markdown';
-import { defaultConfig } from '../config/default';
+import { outputFile } from '../../core/async';
+import { createMarkdown } from '../../core/markdown';
+import { defaultConfig } from '../../core/default';
 
 const printMarkdown = async (config?: Config) => {
-  const tagGroups = await groupCommitsByTags(config?.blacklistPattern);
-
-  const title = `### ${config?.title ?? defaultConfig.title} \n\n ${
-    config?.description ?? defaultConfig.description
-  }\n\n`;
-  const output = createMarkdown(title, tagGroups, config?.repoName);
+  const output = await createMarkdown(config);
 
   try {
     await outputFile(
