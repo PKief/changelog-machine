@@ -8,9 +8,9 @@ const writeFileAsync = promisify(writeFile);
 const readFileAsync = promisify(readFile);
 const mkdirAsync = promisify(mkdir);
 
-const outputFile = async (path: string, contents: string) => {
+const outputFileAsync = async (path: string, contents: string) => {
   await mkdirAsync(dirname(path), { recursive: true });
   await writeFileAsync(path, contents);
 };
 
-export { execAsync, writeFileAsync, readFileAsync, outputFile };
+export { execAsync, writeFileAsync, readFileAsync, outputFileAsync };
