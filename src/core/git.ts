@@ -49,9 +49,7 @@ const getReleaseCommits = async (
     });
 };
 
-export const groupCommitsByTags = async (
-  blacklistPattern: string | undefined
-) => {
+const groupCommitsByTags = async (blacklistPattern: string | undefined) => {
   const releaseCommits = [];
 
   const headTag = {
@@ -75,3 +73,5 @@ export const groupCommitsByTags = async (
   }
   return releaseCommits;
 };
+
+export { groupCommitsByTags };
