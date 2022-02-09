@@ -1,6 +1,6 @@
 {
   "name": "changelog-machine",
-  "version": "0.1.18",
+  "version": "1.0.0",
   "description": "Changelog generator based on Git commit messages and tags",
   "main": "./lib/index.js",
   "module": "./lib/index.js",
