@@ -8,10 +8,10 @@
     "changelog-machine": "./bin/cli.js"
   },
   "scripts": {
-    "changelog": "ts-node src/cli/index.ts",
     "build": "tsc -p tsconfig.json",
     "test": "jest",
     "lint": "eslint -c .eslintrc.json --ext .ts ./src/**/*.ts",
+    "changelog": "ts-node src/cli/index.ts --config changelog.config.json",
     "prepublish": "npm run build",
     "version": "npm run changelog && git add CHANGELOG.md"
   },
