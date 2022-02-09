@@ -1,6 +1,6 @@
 {
   "name": "changelog-machine",
-  "version": "0.1.6",
+  "version": "0.1.18",
   "description": "Changelog generator based on Git commit messages and tags",
   "main": "./lib/index.js",
   "module": "./lib/index.js",
@@ -8,11 +8,12 @@
     "changelog-machine": "./bin/cli.js"
   },
   "scripts": {
-    "start": "ts-node src/cli/index.ts",
+    "changelog": "ts-node src/cli/index.ts",
     "build": "tsc -p tsconfig.json",
     "test": "jest",
     "lint": "eslint -c .eslintrc.json --ext .ts ./src/**/*.ts",
-    "prepublish": "npm run build"
+    "prepublish": "npm run build",
+    "version": "npm run changelog && git add CHANGELOG.md"
   },
   "files": [
     "lib/"
