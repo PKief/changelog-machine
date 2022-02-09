@@ -27,6 +27,14 @@
   },
   "author": "Philipp Kief",
   "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/PKief/changelog-machine/issues"
+  },
+  "homepage": "https://github.com/PKief/changelog-machine/blob/main/README.md",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PKief/changelog-machine.git"
+  },
   "devDependencies": {
     "@types/jest": "^27.4.0",
     "@types/minimist": "^1.2.2",

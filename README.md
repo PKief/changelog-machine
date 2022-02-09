@@ -1,6 +1,6 @@
 <h1 align="center">
   <br>
-    <img src="./logo.png" alt="logo" width="200">
+    <img src="https://github.com/PKief/changelog-machine/raw/main/logo.png" alt="logo" width="200">
   <br><br>
   Changelog Machine
   <br>
