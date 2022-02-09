@@ -83,7 +83,7 @@ describe('Git utils', () => {
         commits: [
           {
             author: 'test.user@test.com',
-            date: new Date('Thu Dec 15 22:06:35 2021'),
+            date: new Date('Thu Dec 15 22:06:35 2021 +0100'),
             hash: '90cc001',
             subject: 'Subject1',
           },
