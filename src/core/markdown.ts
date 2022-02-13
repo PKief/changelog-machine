@@ -23,10 +23,16 @@ const createReleaseSubtitle = (
   repository?: string | undefined
 ) => {
   const latestTag = 'v' + process.env.npm_package_version;
-  const latestVersion =
-    latestTag === group.previousTag ? 'Unreleased changes' : latestTag;
-  const subtitleLinkText = group.tag === 'HEAD' ? latestVersion : group.tag;
-  const subtitleLink = `${repository}/compare/${group.previousTag}...${group.tag}`;
+  const unreleasedChanges = latestTag === group.previousTag;
+  const latestVersion = unreleasedChanges ? 'Unreleased changes' : latestTag;
+  const tagIsHead = group.tag === 'HEAD';
+  const subtitleLinkText = tagIsHead ? latestVersion : group.tag;
+  const subtitleLinkCurrentTag = tagIsHead
+    ? unreleasedChanges
+      ? 'HEAD'
+      : latestTag
+    : group.tag;
+  const subtitleLink = `${repository}/compare/${group.previousTag}...${subtitleLinkCurrentTag}`;
 
   const subtitle = `${createLink(subtitleLinkText, subtitleLink)}`;
   return `#### ${repository ? subtitle : subtitleLinkText}`;
