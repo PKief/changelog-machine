@@ -11,6 +11,7 @@ const run = async () => {
   const args = minimist<{
     version: undefined;
     config: string;
+    help: undefined;
   }>(process.argv.slice(2), flags);
   if (args.version) {
     printVersion();
