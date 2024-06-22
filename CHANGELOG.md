@@ -3,6 +3,13 @@
  All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
  
+#### [v1.1.0](https://github.com/PKief/changelog-machine/compare/v1.0.2...v1.1.0) 
+
+> June 22, 2024 
+
+- Handle missing package.json or version attribute [`#4`](https://github.com/PKief/changelog-machine/pull/4)
+- Add meta information [`#3`](https://github.com/PKief/changelog-machine/pull/3)
+ 
 #### [v1.0.2](https://github.com/PKief/changelog-machine/compare/v1.0.1...v1.0.2) 
 
 > February 18, 2022 
