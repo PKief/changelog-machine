@@ -1,5 +1,5 @@
-import { Config } from '../../models';
 import { readFileAsync } from '../../core/async';
+import { Config } from '../../models';
 
 const readConfigFile = async (configFilePath: string) => {
   try {

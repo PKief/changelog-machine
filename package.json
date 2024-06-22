@@ -11,7 +11,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "test": "jest",
-    "lint": "biome lint",
+    "lint": "npx @biomejs/biome check --write ./src",
     "changelog": "ts-node src/cli/index.ts --config changelog.config.json",
     "prepublish": "npm run build",
     "version": "npm run changelog && git add CHANGELOG.md"

@@ -1,4 +1,5 @@
 import minimist from 'minimist';
+import { checkPackageJsonExists } from '../core/async';
 import { defaultConfig } from '../core/default';
 import { Config } from '../models';
 import { printHelp } from './commands/printHelp';
@@ -6,7 +7,6 @@ import { printMarkdown } from './commands/printMarkdown';
 import { printVersion } from './commands/printVersion';
 import { flags } from './config/options';
 import { readConfigFile } from './config/readConfigFile';
-import { checkPackageJsonExists } from '../core/async';
 
 const run = async () => {
   if (!checkPackageJsonExists()) {
