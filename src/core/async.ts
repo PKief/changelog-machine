@@ -1,5 +1,6 @@
+import { existsSync } from 'fs';
 import { exec } from 'child_process';
-import { mkdir, readFile, writeFile, existsSync } from 'fs';
+import { mkdir, readFile, writeFile } from 'fs';
 import { dirname } from 'path';
 import { promisify } from 'util';
 
