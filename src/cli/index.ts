@@ -6,8 +6,14 @@ import { printMarkdown } from './commands/printMarkdown';
 import { printVersion } from './commands/printVersion';
 import { flags } from './config/options';
 import { readConfigFile } from './config/readConfigFile';
+import { checkPackageJsonExists } from '../core/async';
 
 const run = async () => {
+  if (!checkPackageJsonExists()) {
+    console.error('Error: package.json does not exist.');
+    process.exit(1);
+  }
+
   const args = minimist<{
     version: undefined;
     config: string;

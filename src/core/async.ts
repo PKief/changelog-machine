@@ -1,5 +1,5 @@
 import { exec } from 'child_process';
-import { mkdir, readFile, writeFile } from 'fs';
+import { existsSync, mkdir, readFile, writeFile } from 'fs';
 import { dirname } from 'path';
 import { promisify } from 'util';
 
@@ -13,4 +13,14 @@ const outputFileAsync = async (path: string, contents: string) => {
   await writeFileAsync(path, contents);
 };
 
-export { execAsync, writeFileAsync, readFileAsync, outputFileAsync };
+const checkPackageJsonExists = (): boolean => {
+  return existsSync('package.json');
+};
+
+export {
+  checkPackageJsonExists,
+  execAsync,
+  outputFileAsync,
+  readFileAsync,
+  writeFileAsync,
+};
