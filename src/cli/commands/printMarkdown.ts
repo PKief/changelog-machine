@@ -1,7 +1,7 @@
-import { Config } from '../../models';
 import { outputFileAsync } from '../../core/async';
-import { createMarkdown } from '../../core/markdown';
 import { defaultConfig } from '../../core/default';
+import { createMarkdown } from '../../core/markdown';
+import { Config } from '../../models';
 
 const printMarkdown = async (config?: Config) => {
   const output = await createMarkdown(config);

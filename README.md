@@ -106,3 +106,11 @@ printMarkdown({
   repositoryUrl: 'https://github.com/PKief/vscode-material-icon-theme',
 });
 ```
+
+## Linting and Formatting with Biome.js
+
+This project uses Biome.js for linting and formatting. Biome.js replaces the previously used tools, eslint and prettier, to provide a unified way to enforce code quality and style guidelines.
+
+To set up Biome.js in your local environment, follow the instructions provided in the [Biome.js documentation](https://biomejs.com/docs).
+
+Contributors are encouraged to run `npx biome lint` before submitting pull requests to ensure code consistency and quality.
