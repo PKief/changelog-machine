@@ -1,6 +1,5 @@
-import { existsSync } from 'fs';
 import { exec } from 'child_process';
-import { mkdir, readFile, writeFile } from 'fs';
+import { existsSync, mkdir, readFile, writeFile } from 'fs';
 import { dirname } from 'path';
 import { promisify } from 'util';
 
@@ -18,4 +17,10 @@ const checkPackageJsonExists = (): boolean => {
   return existsSync('package.json');
 };
 
-export { execAsync, writeFileAsync, readFileAsync, outputFileAsync, checkPackageJsonExists };
+export {
+  checkPackageJsonExists,
+  execAsync,
+  outputFileAsync,
+  readFileAsync,
+  writeFileAsync,
+};
