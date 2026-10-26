@@ -7,10 +7,13 @@ const displayDelayMs = 200;
 
 export async function withProgress<T>(
   label: string,
-  task: () => Promise<T>,
+  task: (update: (label: string) => void) => Promise<T>,
   output: WriteStream = process.stderr
 ): Promise<T> {
-  if (!output.isTTY) return task();
+  if (!output.isTTY) return task(() => {});
+  const update = (message: string) => {
+    label = message;
+  };
 
   let frame = 0;
   let visible = false;
@@ -29,7 +32,7 @@ export async function withProgress<T>(
   delay.unref();
 
   try {
-    return await task();
+    return await task(update);
   } finally {
     clearTimeout(delay);
     clearInterval(animation);

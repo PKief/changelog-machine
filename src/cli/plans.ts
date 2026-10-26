@@ -80,8 +80,12 @@ export async function planChangelog(
     .flatMap((release) => release.commits)
     .filter((commit) => parseCommit(commit, flags['include-non-conventional']));
   const contributors = flags['resolve-contributors']
-    ? await withProgress('Resolving contributor profiles', () =>
-        resolveContributors(commits, url)
+    ? await withProgress('Resolving contributor profiles', (update) =>
+        resolveContributors(commits, url, (progress) =>
+          update(
+            `Contributors: ${progress.completed}/${progress.total} checked, ${progress.resolved} resolved, ${progress.requests} requests`
+          )
+        )
       )
     : undefined;
   const markdown = renderMarkdown(selectedReleases, {

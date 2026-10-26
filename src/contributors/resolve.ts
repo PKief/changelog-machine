@@ -11,6 +11,13 @@ import {
 
 export type { ContributorProfile } from './profile.js';
 
+export interface ContributorProgress {
+  completed: number;
+  total: number;
+  resolved: number;
+  requests: number;
+}
+
 const REQUEST_TIMEOUT_MS = 5_000;
 const MAX_CONCURRENT_REQUESTS = 3;
 const MAX_ATTEMPTS_PER_AUTHOR = 2;
@@ -50,7 +57,8 @@ async function requestProfile(
 
 export async function resolveContributors(
   commits: readonly AuthorCommit[],
-  repositoryUrl?: string
+  repositoryUrl?: string,
+  onProgress?: (progress: ContributorProgress) => void
 ): Promise<Record<string, ContributorProfile>> {
   const repository = parseRepository(repositoryUrl);
   if (!repository) return {};
@@ -61,10 +69,20 @@ export async function resolveContributors(
   const token = getRepositoryToken(repository);
   let next = 0;
   let stopped = false;
+  const progress = {
+    completed: 0,
+    total: authors.length,
+    resolved: 0,
+    requests: 0,
+  };
+  const report = () => onProgress?.({ ...progress });
+  report();
 
   async function resolveAuthor(hashes: string[]): Promise<void> {
     for (const hash of hashes.slice(0, MAX_ATTEMPTS_PER_AUTHOR)) {
       if (stopped) return;
+      progress.requests++;
+      report();
       const result = await requestProfile(supportedRepository, hash, token);
       if (result.stop) {
         if (!stopped)
@@ -75,6 +93,7 @@ export async function resolveContributors(
         return;
       }
       if (result.profile) {
+        progress.resolved++;
         for (const authorHash of hashes) profiles[authorHash] = result.profile;
         return;
       }
@@ -86,6 +105,8 @@ export async function resolveContributors(
       const hashes = authors[next++];
       if (!hashes) return;
       await resolveAuthor(hashes);
+      progress.completed++;
+      report();
     }
   }
 

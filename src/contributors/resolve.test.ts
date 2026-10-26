@@ -26,6 +26,40 @@ function setFetch(handler: typeof fetch): void {
   fetchMock.mock.mockImplementation(handler);
 }
 
+test('reports author completion, resolved profiles and request counts without identities', async () => {
+  setFetch(async () => Response.json(githubProfile));
+  const updates: {
+    completed: number;
+    total: number;
+    resolved: number;
+    requests: number;
+  }[] = [];
+  await resolveContributors(
+    [
+      { hash: 'abcdef1', name: 'Alice', email: 'private@example.com' },
+      { hash: 'abcdef2', name: 'Alice', email: 'private@example.com' },
+    ],
+    'https://github.com/org/repo',
+    (progress) => updates.push(progress)
+  );
+  assert.deepEqual(updates[0], {
+    completed: 0,
+    total: 1,
+    resolved: 0,
+    requests: 0,
+  });
+  assert.deepEqual(updates.at(-1), {
+    completed: 1,
+    total: 1,
+    resolved: 1,
+    requests: 1,
+  });
+  assert.doesNotMatch(
+    JSON.stringify(updates),
+    /Alice|private@example.com|abcdef/
+  );
+});
+
 const githubProfile = JSON.parse(
   '{"author":{"login":"alice","html_url":"https://github.com/alice"}}'
 );

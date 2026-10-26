@@ -28,18 +28,27 @@ test('long terminal operations animate and clear the indicator', async (context)
   context.mock.timers.enable({ apis: ['setTimeout', 'setInterval'] });
   const target = terminal(true);
   let finish!: (value: number) => void;
+  let updateLabel!: (label: string) => void;
   const result = withProgress(
     'Reading Git releases',
-    () =>
-      new Promise<number>((resolve) => {
+    (update) => {
+      updateLabel = update;
+      return new Promise<number>((resolve) => {
         finish = resolve;
-      }),
+      });
+    },
     target.output
   );
   context.mock.timers.tick(200);
   assert.match(target.text(), /\| Reading Git releases/);
   context.mock.timers.tick(100);
   assert.match(target.text(), /\/ Reading Git releases/);
+  updateLabel('Contributors: 1/20 checked, 1 resolved, 1 requests');
+  context.mock.timers.tick(100);
+  assert.match(
+    target.text(),
+    /Contributors: 1\/20 checked, 1 resolved, 1 requests/
+  );
   finish(42);
   assert.equal(await result, 42);
   assert.ok(target.text().endsWith('\u001b[1G\u001b[2K'));
