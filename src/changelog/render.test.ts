@@ -2,6 +2,21 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { renderMarkdown } from './render.js';
 
+test('closing references link to issues while retaining the commit reference', () => {
+  const markdown = renderMarkdown(
+    releases([commit("fix: remove 'brs' (Closes #3554)")]),
+    {
+      repositoryUrl:
+        'https://github.com/material-extensions/vscode-material-icon-theme',
+    }
+  );
+  assert.match(
+    markdown,
+    /Closes \[#3554\]\(https:\/\/github.com\/material-extensions\/vscode-material-icon-theme\/issues\/3554\)/
+  );
+  assert.match(markdown, /\/commit\/abcdef0123456789/);
+});
+
 const commit = (subject: string, name = 'Alice', body = '') => ({
   hash: 'abcdef0123456789',
   name,

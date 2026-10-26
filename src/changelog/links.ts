@@ -9,16 +9,19 @@ const repositoryRoutes = {
   'github.com': {
     compare: '/compare/',
     commit: '/commit/',
+    issue: '/issues/',
     pullRequest: '/pull/',
   },
   'gitlab.com': {
     compare: '/-/compare/',
     commit: '/-/commit/',
+    issue: '/-/issues/',
     pullRequest: '/-/merge_requests/',
   },
   'bitbucket.org': {
     compare: '/branches/compare/',
     commit: '/commits/',
+    issue: '/issues/',
     pullRequest: '/pull-requests/',
   },
 };
@@ -64,6 +67,28 @@ export function compareUrl(
       ? `${target}..${base}`
       : `${base}...${target}`;
   return `${repository.base}${repositoryRoutes[repository.host].compare}${comparison}`;
+}
+
+const inlineCodePattern = /(`+)[\s\S]*?\1/;
+const markdownLinkPattern = /!?\[[^\]\n]*\]\([^\n]*?\)/;
+const plainUrlPattern = /https?:\/\/[^\s)]+/;
+const issueNumberPattern = /(?<![\w/#\\])#([1-9]\d*)\b/;
+const protectedMarkdownOrIssue = new RegExp(
+  [inlineCodePattern, markdownLinkPattern, plainUrlPattern, issueNumberPattern]
+    .map((pattern) => pattern.source)
+    .join('|'),
+  'g'
+);
+
+export function linkIssueReferences(
+  message: string,
+  repository?: Repository
+): string {
+  if (!repository) return message;
+  const issueUrl = `${repository.base}${repositoryRoutes[repository.host].issue}`;
+  return message.replace(protectedMarkdownOrIssue, (match, _code, issue) =>
+    issue ? `[#${issue}](${issueUrl}${issue})` : match
+  );
 }
 
 export function commitReference(

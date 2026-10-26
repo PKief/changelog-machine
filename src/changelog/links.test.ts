@@ -1,6 +1,30 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { commitReference, compareUrl, repositoryBase } from './links.js';
+import {
+  commitReference,
+  compareUrl,
+  linkIssueReferences,
+  repositoryBase,
+} from './links.js';
+
+test('inline issue numbers link to their repository without changing existing links or code', () => {
+  const repository = repositoryBase('https://github.com/example/repo');
+  assert.equal(
+    linkIssueReferences('Remove brs (Closes #3554), fixes #42', repository),
+    'Remove brs (Closes [#3554](https://github.com/example/repo/issues/3554)), fixes [#42](https://github.com/example/repo/issues/42)'
+  );
+  const protectedText =
+    '`#42` [#42](https://example.com/issues/42) https://example.com/#42 owner/repo#42 \\#42';
+  assert.equal(linkIssueReferences(protectedText, repository), protectedText);
+  assert.equal(linkIssueReferences('Closes #42'), 'Closes #42');
+  assert.equal(
+    linkIssueReferences(
+      'Fixes #42',
+      repositoryBase('https://gitlab.com/group/repo')
+    ),
+    'Fixes [#42](https://gitlab.com/group/repo/-/issues/42)'
+  );
+});
 
 const commit = (pr?: string) => ({
   hash: '123456789abc',

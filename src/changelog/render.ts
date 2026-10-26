@@ -3,7 +3,12 @@ import { redactEmails } from '../contributors/privacy.js';
 import type { Options, ParsedCommit, Release } from '../types.js';
 import { contributorLines } from './contributors.js';
 import type { Repository } from './links.js';
-import { commitReference, compareUrl, repositoryBase } from './links.js';
+import {
+  commitReference,
+  compareUrl,
+  linkIssueReferences,
+  repositoryBase,
+} from './links.js';
 import { capitalizeMessage, plainText, safeText } from './text.js';
 
 const groups: ReadonlyArray<readonly [string, string]> = [
@@ -27,10 +32,13 @@ function entry(commit: ParsedCommit, repository?: Repository): string[] {
   const scope = commit.scope ? `**${plainText(commit.scope)}:** ` : '';
   const reference = commitReference(commit, repository);
   const lines = [
-    `- ${scope}${safeText(capitalizeMessage(commit.description))} ${reference}`,
+    `- ${scope}${linkIssueReferences(safeText(capitalizeMessage(commit.description)), repository)} ${reference}`,
   ];
   for (const note of commit.breakingNotes) {
-    const parts = safeText(capitalizeMessage(note)).split(noteLineBreakPattern);
+    const parts = linkIssueReferences(
+      safeText(capitalizeMessage(note)),
+      repository
+    ).split(noteLineBreakPattern);
     lines.push(
       `  - ${parts[0]}`,
       ...parts.slice(1).map((line) => `    ${line}`)
