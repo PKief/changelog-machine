@@ -72,9 +72,9 @@ test('earliest history, annotated tags, full bodies, mailmap and newest-first ra
   );
   assert.deepEqual(
     releases.map((r) => r.commits.map((c) => c.hash)),
-    [[fourth], [third], [second, first]]
+    [[fourth], [third], [first, second]]
   );
-  assert.equal(releases[2].commits[0].body, `${body}\n`);
+  assert.equal(releases[2].commits[1].body, `${body}\n`);
   for (const release of releases) {
     for (const c of release.commits) {
       assert.equal(c.name, 'Mapped Author');
@@ -134,7 +134,7 @@ test('no version tags returns all history as Unreleased', async () => {
   assert.equal(releases[0].previousTag, undefined);
   assert.deepEqual(
     releases[0].commits.map((c) => c.subject),
-    ['next', 'initial']
+    ['initial', 'next']
   );
 });
 
@@ -188,7 +188,7 @@ test('merge-only Unreleased ranges remain present but exclude merge commits', as
   assert.deepEqual(releases[0].commits, []);
   assert.deepEqual(
     releases[1].commits.map((c) => c.subject),
-    ['side', 'root']
+    ['root', 'side']
   );
 });
 

@@ -17,6 +17,24 @@ const releases = (commits: ReturnType<typeof commit>[]) => [
   },
 ];
 
+test('category entries preserve oldest-to-newest commit order', () => {
+  const markdown = renderMarkdown(
+    releases([
+      commit('fix: oldest'),
+      commit('feat: oldest feature'),
+      commit('fix: middle'),
+      commit('feat: newest feature'),
+      commit('fix: newest'),
+    ])
+  );
+  assert.ok(markdown.indexOf('- oldest (') < markdown.indexOf('- middle ('));
+  assert.ok(markdown.indexOf('- middle (') < markdown.indexOf('- newest ('));
+  assert.ok(
+    markdown.indexOf('- oldest feature (') <
+      markdown.indexOf('- newest feature (')
+  );
+});
+
 test('renders compare, scoped Markdown, PR/hash links and sorted unique plain contributors', () => {
   assert.equal(
     renderMarkdown(

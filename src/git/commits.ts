@@ -8,7 +8,16 @@ export async function readCommits(
   const format = '%H%x00%aN%x00%aE%x00%s%x00%b';
   const fieldsPerCommit = 5;
   const output = await git(
-    ['log', '--no-merges', '-z', `--format=${format}`, range, '--'],
+    [
+      'log',
+      '--reverse',
+      '--topo-order',
+      '--no-merges',
+      '-z',
+      `--format=${format}`,
+      range,
+      '--',
+    ],
     cwd
   );
   if (!output) return [];
