@@ -2,6 +2,10 @@ const markdownPunctuationPattern = /[\\`*_{}\[\]()#!|]/g;
 const textLineBreakPattern = /[\r\n]+/g;
 const segmentUnsafeCharactersPattern = /[!'()*]/g;
 
+export function capitalizeMessage(value: string): string {
+  return value.replace(/\p{L}/u, (letter) => letter.toUpperCase());
+}
+
 export function safeText(value: string): string {
   return value
     .replaceAll('&', '&amp;')

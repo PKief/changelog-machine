@@ -27,11 +27,11 @@ test('category entries preserve oldest-to-newest commit order', () => {
       commit('fix: newest'),
     ])
   );
-  assert.ok(markdown.indexOf('- oldest (') < markdown.indexOf('- middle ('));
-  assert.ok(markdown.indexOf('- middle (') < markdown.indexOf('- newest ('));
+  assert.ok(markdown.indexOf('- Oldest (') < markdown.indexOf('- Middle ('));
+  assert.ok(markdown.indexOf('- Middle (') < markdown.indexOf('- Newest ('));
   assert.ok(
-    markdown.indexOf('- oldest feature (') <
-      markdown.indexOf('- newest feature (')
+    markdown.indexOf('- Oldest feature (') <
+      markdown.indexOf('- Newest feature (')
   );
 });
 
@@ -47,9 +47,9 @@ test('renders compare, scoped Markdown, PR/hash links and sorted unique plain co
       { repositoryUrl: 'https://github.com/example/project.git/' }
     ),
     '# Changelog\n\n## v2.0.0\n\n[compare changes](https://github.com/example/project/compare/v1.0.0...v2.0.0)\n\n' +
-      '### Enhancements\n\n- **api:** **tokens** ([#123](https://github.com/example/project/pull/123))\n\n' +
-      '### Fixes\n\n- repair ([abcdef01](https://github.com/example/project/commit/abcdef0123456789))\n\n' +
-      '### Documentation\n\n- usage ([abcdef01](https://github.com/example/project/commit/abcdef0123456789))\n\n' +
+      '### Enhancements\n\n- **api:** **Tokens** ([#123](https://github.com/example/project/pull/123))\n\n' +
+      '### Fixes\n\n- Repair ([abcdef01](https://github.com/example/project/commit/abcdef0123456789))\n\n' +
+      '### Documentation\n\n- Usage ([abcdef01](https://github.com/example/project/commit/abcdef0123456789))\n\n' +
       '### Contributors\n\n- Alice\n- Zoe\n'
   );
 });
@@ -66,7 +66,23 @@ test('breaking commits appear only in breaking changes and include multiline not
   );
   assert.match(markdown, /### Breaking Changes/);
   assert.doesNotMatch(markdown, /### Enhancements/);
-  assert.match(markdown, /  - remove `old`\n    Use \*\*new\*\* instead\./);
+  assert.match(markdown, /  - Remove `old`\n    Use \*\*new\*\* instead\./);
+});
+
+test('capitalizes scoped Markdown and Unicode descriptions and breaking notes without mutating input', () => {
+  const input = commit(
+    'feat(core): **éclair** API',
+    'Alice',
+    'BREAKING CHANGE: déjà vu'
+  );
+  const originalSubject = input.subject;
+  const originalBody = input.body;
+  const markdown = renderMarkdown(releases([input]));
+
+  assert.match(markdown, /- \*\*core:\*\* \*\*Éclair\*\* API/);
+  assert.match(markdown, /  - Déjà vu/);
+  assert.equal(input.subject, originalSubject);
+  assert.equal(input.body, originalBody);
 });
 
 test('renders all group headings in order and unknown/nonconventional under Other Changes', () => {
@@ -107,7 +123,7 @@ test('renders all group headings in order and unknown/nonconventional under Othe
     'Other Changes',
     'Contributors',
   ]);
-  assert.match(markdown, /- ordinary subject \(abcdef01\)/);
+  assert.match(markdown, /- Ordinary subject \(abcdef01\)/);
 });
 
 test('escapes raw HTML without losing Markdown and rejects unsafe repository schemes', () => {
@@ -122,7 +138,7 @@ test('escapes raw HTML without losing Markdown and rejects unsafe repository sch
   );
   assert.match(
     markdown,
-    /\*\*bold\*\* &lt;script&gt;alert\(1\)&lt;\/script&gt;/
+    /\*\*Bold\*\* &lt;script&gt;alert\(1\)&lt;\/script&gt;/
   );
   assert.match(markdown, /&lt;img src=x&gt;/);
   assert.doesNotMatch(markdown, /<|javascript:|\[Changes\]/);
@@ -153,7 +169,7 @@ test('redacts emails throughout Markdown and rejects email-bearing contributor U
     },
   });
 
-  assert.match(markdown, /exposed \[redacted email\]/);
+  assert.match(markdown, /Exposed \[redacted email\]/);
   assert.match(markdown, /Unknown contributor/);
   assert.match(markdown, /\[@alice\]\(https:\/\/github\.com\/alice\)/);
   assert.doesNotMatch(

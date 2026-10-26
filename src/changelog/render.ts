@@ -4,7 +4,7 @@ import type { Options, ParsedCommit, Release } from '../types.js';
 import { contributorLines } from './contributors.js';
 import type { Repository } from './links.js';
 import { commitReference, compareUrl, repositoryBase } from './links.js';
-import { plainText, safeText } from './text.js';
+import { capitalizeMessage, plainText, safeText } from './text.js';
 
 const groups: ReadonlyArray<readonly [string, string]> = [
   ['breaking', 'Breaking Changes'],
@@ -26,9 +26,11 @@ const noteLineBreakPattern = /\r?\n/;
 function entry(commit: ParsedCommit, repository?: Repository): string[] {
   const scope = commit.scope ? `**${plainText(commit.scope)}:** ` : '';
   const reference = commitReference(commit, repository);
-  const lines = [`- ${scope}${safeText(commit.description)} ${reference}`];
+  const lines = [
+    `- ${scope}${safeText(capitalizeMessage(commit.description))} ${reference}`,
+  ];
   for (const note of commit.breakingNotes) {
-    const parts = safeText(note).split(noteLineBreakPattern);
+    const parts = safeText(capitalizeMessage(note)).split(noteLineBreakPattern);
     lines.push(
       `  - ${parts[0]}`,
       ...parts.slice(1).map((line) => `    ${line}`)

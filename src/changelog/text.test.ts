@@ -1,6 +1,23 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { encodeCharacter, encodeSegment, plainText, safeText } from './text.js';
+import {
+  capitalizeMessage,
+  encodeCharacter,
+  encodeSegment,
+  plainText,
+  safeText,
+} from './text.js';
+
+test('messages capitalize the first Unicode letter without changing the rest', () => {
+  assert.equal(capitalizeMessage('add new icons'), 'Add new icons');
+  assert.equal(
+    capitalizeMessage('**überarbeite** icons'),
+    '**Überarbeite** icons'
+  );
+  assert.equal(capitalizeMessage('Already UPPERCASE'), 'Already UPPERCASE');
+  assert.equal(capitalizeMessage('123 ...'), '123 ...');
+  assert.equal(capitalizeMessage(''), '');
+});
 
 test('safeText escapes HTML while preserving Markdown', () => {
   assert.equal(

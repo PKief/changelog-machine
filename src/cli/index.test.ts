@@ -107,7 +107,7 @@ test('dry-run and full history need no package manifest', async () => {
     const preview = await cli(cwd, '--dry-run');
     assert.equal(preview.code, 0);
     assert.match(preview.stdout, /## Unreleased/);
-    assert.match(preview.stdout, /upcoming feature/);
+    assert.match(preview.stdout, /Upcoming feature/);
     assert.match(preview.stdout, /## v1\.0\.0/);
     assert.deepEqual(await readdir(cwd), ['.git']);
     const before = await snapshot(cwd);
@@ -185,7 +185,7 @@ test('full preview omits Unreleased without parsed qualifying commits', async ()
     );
     assert.equal(included.code, 0);
     assert.match(included.stdout, /## Unreleased/);
-    assert.match(included.stdout, /maintenance without a conventional header/);
+    assert.match(included.stdout, /Maintenance without a conventional header/);
     assert.deepEqual(await readdir(cwd), ['.git']);
   });
 });
@@ -238,7 +238,7 @@ test('default generation creates the full history including the earliest release
     assert.match(markdown, /## Unreleased/);
     assert.match(markdown, /## v1\.0\.1/);
     assert.match(markdown, /## v1\.0\.0/);
-    assert.match(markdown, /first release/);
+    assert.match(markdown, /First release/);
   });
 });
 
@@ -251,8 +251,8 @@ test('incremental generation preserves older bytes and updates Unreleased', asyn
     const result = await cli(cwd);
     assert.equal(result.code, 0);
     const updated = await readFile(join(cwd, 'CHANGELOG.md'), 'utf8');
-    assert.match(updated, /upcoming feature/);
-    assert.match(updated, /second release/);
+    assert.match(updated, /Upcoming feature/);
+    assert.match(updated, /Second release/);
     assert.doesNotMatch(updated, /Stale draft/);
     assert.ok(updated.endsWith(oldBytes));
     assert.equal((updated.match(/## v1\.0\.0/g) ?? []).length, 1);

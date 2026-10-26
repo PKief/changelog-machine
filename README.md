@@ -73,6 +73,8 @@ Existing files must use `# Changelog` and `## <version-tag>` / `## Unreleased` h
 
 Sections contain no added emojis. Conventional types map to Enhancements (`feat`), Fixes (`fix`), Performance (`perf`), Documentation, Refactors, Tests, Build, CI, Chores and Reverts. Unknown conventional types go under Other Changes. Breaking changes have their own section, including multiline breaking-change notes.
 
+Commit descriptions and breaking-change notes capitalize their first letter, including Unicode letters after Markdown formatting. Scopes and contributor names keep their original spelling. Run `--full` to apply capitalization to existing historical sections.
+
 Within each category, commits appear oldest first and newest last, using Git ancestry order. Releases remain newest first. Run `--full` to apply this ordering to existing historical sections.
 
 Release bookkeeping messages such as `release: v1.2.3`, `chore(release): v1.2.3`, and `chore: release v1.2.3` are excluded, including with `--include-non-conventional`. Release tooling changes and unrelated chores remain visible. Run `--full` to remove previously generated release entries from historical sections.
