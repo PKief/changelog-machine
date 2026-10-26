@@ -8,3 +8,5 @@ dist
 
 # Tests
 coverage
+.test-build
+*.tgz
