@@ -1,53 +1,40 @@
 # Changelog Machine
 
-A small, offline conventional changelog and package-version generator. Written in TypeScript, with **no production npm dependencies**. Requires **Node 22+** and **Git**.
+Conventional changelogs and version bumps, with **zero production dependencies**.
+Requires **Node 22+** and **Git**.
 
-## Usage
+## Quick start
 
-```sh
-npx changelog-machine --full
-```
-
-Run inside your repository. By default, the CLI creates `CHANGELOG.md` if missing; otherwise it adds newer releases and refreshes `Unreleased`, preserving older release sections and your introduction. `--full` explicitly replaces the entire file using reachable version tags and conventional commits, newest releases first. Preview with `--dry-run` before writing.
+Run inside your repository:
 
 ```sh
-changelog-machine                         # Create or incrementally update CHANGELOG.md
-changelog-machine --dry-run               # Preview the incremental result
-changelog-machine --full --dry-run        # Preview the entire changelog
-changelog-machine --full --output docs/CHANGELOG.md
-changelog-machine --full --include-non-conventional
-changelog-machine --bump --dry-run        # Show the recommended version
-changelog-machine --bump                  # Update package metadata only
-changelog-machine --bump --full           # Update metadata and regenerate history
+npx changelog-machine                 # Create or update CHANGELOG.md
+npx changelog-machine --dry-run       # Preview changes
+npx changelog-machine --full          # Rebuild from scratch
+npx changelog-machine --bump --dry-run # Preview the next version
+npx changelog-machine --bump           # Update package metadata only
 ```
 
-`--bump --full` still labels untagged changes `Unreleased`: bumping does not create a release tag.
+- **Default:** add newer releases, refresh `Unreleased`, preserve older sections.
+- **Missing file:** generate the entire history.
+- **`--full`:** replace all content, including manual edits.
+- No automatic Git fetches, commits, tags, pushes, or publishing.
 
-### Options
+## Options
 
-| Option | Behavior |
+| Option | Purpose |
 | --- | --- |
-| `--full` | Replace the complete changelog (default: `CHANGELOG.md`) |
-| `--bump` | Infer and apply a package-version bump |
-| `--dry-run` | Preview without writing files |
-| `--output <path>` | Change the destination (also works for incremental updates) |
-| `--repo-url <url>` | Override remote detection with an HTTPS URL |
-| `--resolve-contributors` | Opt in to verified contributor-profile lookups over the network |
+| `--full` | Rebuild the entire changelog |
+| `--bump` | Infer and apply a version bump |
+| `--dry-run` | Preview without writing |
+| `--output <path>` | Set the changelog destination |
+| `--repo-url <url>` | Override repository links with an HTTPS URL |
+| `--resolve-contributors` | Look up verified contributor profiles |
 | `--include-non-conventional` | Include other commits under Other Changes |
-| `--help`, `-h` | Display usage |
-| `--version`, `-v` | Display the tool version |
+| `--help`, `-h` | Show usage |
+| `--version`, `-v` | Show the tool version |
 
-Long-running Git reads and contributor lookups show an animated progress indicator on interactive stderr. Fast operations and non-interactive output stay silent; stdout remains clean for `--dry-run` output.
-
-There is no configuration file. Network access is disabled unless `--resolve-contributors` is requested. Nothing automatically fetches Git history, commits, tags, pushes, runs npm lifecycle hooks, or publishes.
-
-### Incremental updates and scaling
-
-The newest documented release heading is the update boundary. Only commits and release sections after that tag are loaded and generated; the existing `Unreleased` section is replaced, never duplicated. Historical release sections are preserved verbatim, including any old email addresses. Use `--full` to apply current formatting and email redaction throughout.
-
-Tag metadata is read in one Git command and release order is found with a topological traversal, avoiding pairwise comparisons between every tag. Incremental traversal is bounded to the documented tag through HEAD; contributor lookups run only for newly generated sections. Unchanged files are not rewritten. Full generation still reads historical commit ranges per release. Git may traverse older ancestry internally for validation; there is no disk cache or extra state file.
-
-Existing files must use `# Changelog` and `## <version-tag>` / `## Unreleased` headings. Unknown formatting, duplicate release headings, and missing or unreachable boundary tags fail instead of silently overwriting content. Use `--full` when intentionally changing history or migrating another format. Incremental updates add newer releases; they do not backfill holes among already documented older releases.
+Long operations show progress in interactive terminals. Redirected output stays clean.
 
 ## Changelog format
 
@@ -58,76 +45,105 @@ Existing files must use `# Changelog` and `## <version-tag>` / `## Unreleased` h
 
 [compare changes](https://github.com/example/project/compare/v1.0.0...v2.0.0)
 
-### Breaking Changes
-
-- **api:** Remove deprecated options
-
 ### Enhancements
 
-- Add new icons ([#42](https://github.com/example/project/pull/42))
+- **icons:** Add new icons ([#42](https://github.com/example/project/pull/42))
 
 ### Contributors
 
 - Philipp Kief
 ```
 
-Sections contain no added emojis. Conventional types map to Enhancements (`feat`), Fixes (`fix`), Performance (`perf`), Documentation, Refactors, Tests, Build, CI, Chores and Reverts. Unknown conventional types go under Other Changes. Breaking changes have their own section, including multiline breaking-change notes.
+- Releases: **newest first**. Commits within categories: **oldest first**.
+- Messages start uppercase; scopes and Markdown are preserved.
+- Separate sections for breaking changes, features, fixes, and other commit types.
+- Release bookkeeping commits are excluded; merge commits are skipped.
+- GitHub, GitLab, and Bitbucket links are supported.
+- Contributor names honor `.mailmap`; recognizable emails are redacted.
 
-Commit descriptions and breaking-change notes capitalize their first letter, including Unicode letters after Markdown formatting. Scopes and contributor names keep their original spelling. Run `--full` to apply capitalization to existing historical sections.
+Use `--full` to apply formatting changes to older sections.
 
-Within each category, commits appear oldest first and newest last, using Git ancestry order. Releases remain newest first. Run `--full` to apply this ordering to existing historical sections.
+## Incremental updates
 
-Release bookkeeping messages such as `release: v1.2.3`, `chore(release): v1.2.3`, and `chore: release v1.2.3` are excluded, including with `--include-non-conventional`. Release tooling changes and unrelated chores remain visible. Run `--full` to remove previously generated release entries from historical sections.
+The newest documented tag is the update boundary. Only newer commit ranges are
+loaded; older sections stay untouched. Unchanged files are not rewritten.
 
-Scopes and description Markdown are preserved. Trailing `(#123)` references link to pull requests; otherwise entries link to their commit. Supported public hosts are GitHub, GitLab and Bitbucket. Unsupported hosts produce plain references. Contributor names come from included commits, honoring Git `.mailmap`. Emails are never used as contributor labels; email-only names become `Unknown contributor`. Recognizable plain and URL-encoded email addresses are redacted throughout generated Markdown, including descriptions and breaking notes. Merge commits are excluded; squash commit messages are supported.
+- Supports `1.2.3` / `v1.2.3` tags, including prereleases and build metadata.
+- Uses Git ancestry, not tag dates; avoids quadratic tag comparisons.
+- Requires `# Changelog` and `## <tag>` / `## Unreleased` headings.
+- Invalid formatting, ambiguous tags, or missing boundaries fail safely.
+- Does not backfill gaps between older documented releases.
+- Historical emails remain untouched; `--full` redacts generated history.
 
-### Optional contributor profiles
+Shallow clone? Run `git fetch --unshallow --tags` first.
+
+## Contributor profiles
 
 ```sh
-changelog-machine --full --resolve-contributors
+changelog-machine --resolve-contributors
 ```
 
-Verified profiles appear alongside Git author names, for example `Philipp Kief ([@PKief](https://github.com/PKief))`. GitHub commit authors and Bitbucket associated users are resolved using their public APIs. GitLab's commit API does not reliably associate authors with accounts, so GitLab retains Git author names rather than guessing or substituting merge-request authors.
+Adds verified profile links next to Git author names. Network access is **opt-in**.
 
-For authenticated lookups, set `GH_TOKEN` or `GITHUB_TOKEN` for GitHub, or `BITBUCKET_TOKEN` for a Bitbucket bearer access token. Tokens are never written to the changelog. Requests have a five-second timeout, run at most three concurrently, and reuse results for duplicate commits within a run. Authentication failures and rate limits stop queued requests; missing identities and network failures fall back to Git author names without exposing emails. On large histories, rate limits may leave many authors unresolved. Enriched results can change over time; offline generation remains deterministic.
+| Provider | Resolution | Optional token |
+| --- | --- | --- |
+| GitHub | Associated commit author | `GH_TOKEN` or `GITHUB_TOKEN` |
+| Bitbucket | Associated user | `BITBUCKET_TOKEN` (bearer token) |
+| GitLab | Git author name only | — |
 
-API callers can use `resolveContributors(commits, repositoryUrl)` and pass its result as `contributors` to `renderMarkdown`. Explicit GitLab profiles can also be supplied through this API; there is no automatic GitLab username lookup.
+Unresolved users fall back to Git author names, never emails. Email-only names
+become `Unknown contributor`. No username guessing or email searches.
 
-Tags may be `1.2.3` or `v1.2.3`, including SemVer prerelease/build suffixes. Only tags reachable from HEAD are considered. Release order follows ancestry rather than timestamps. Ambiguous tag chains and multiple version tags on one commit fail explicitly. Shallow repositories must first be completed by the user (`git fetch --unshallow --tags`). Empty repositories return an empty changelog. Non-conventional history is excluded unless requested, so older releases can have empty sections.
+Lookups use five-second timeouts, three concurrent requests, and per-run
+commit deduplication. Rate limits stop queued requests; enriched results may vary.
 
-## Version policy
+## Version bumps
 
-The highest-impact conventional commit since the latest release determines the bump:
+The highest-impact commit since the latest release wins:
 
-| Commits | Result |
+| Commit | Bump |
 | --- | --- |
-| `feat!:`, `fix(scope)!:`, `BREAKING CHANGE:` or `BREAKING-CHANGE:` footer | Major |
+| `!`, `BREAKING CHANGE:`, or `BREAKING-CHANGE:` | Major, even on `0.x` |
 | `feat:` | Minor |
 | `fix:` or `perf:` | Patch |
-| Other types only | No bump |
+| Other types | None |
 
-Breaking changes always mean a major bump, even on `0.x`. With no tags, all history is analyzed against the current package version. When a release tag exists, it must match `package.json`; a mismatch fails, preventing repeated application of an unreleased bump. Prerelease version promotion is not supported by `--bump`.
+- Updates `package.json` and an existing npm lockfile (versions 1–3).
+- Leaves dependency versions unchanged.
+- Requires the latest tag to match the package version; repeated bumps fail.
+- Without tags, analyzes all commits against the current package version.
+- Prerelease promotion, Yarn/pnpm lockfiles, and workspaces are unsupported.
+- `--bump --full` also rebuilds the changelog; untagged changes stay `Unreleased`.
 
-`--bump` updates `package.json` plus an existing npm `package-lock.json` or `npm-shrinkwrap.json` (lockfile versions 1–3). Only root version fields change, not dependency versions. Yarn/pnpm lockfiles and conflicting npm lockfiles are rejected before writing. Workspaces and independent package release streams are not supported.
-
-Writes are staged before replacement and each individual file is replaced atomically. Replacement of several files is not a cross-file transaction; review changes before committing.
+Files are staged first and replaced atomically per file—not as a multi-file transaction.
 
 ## API
 
 ```ts
-import { getReleases, renderMarkdown, getRepositoryUrl, planVersion } from 'changelog-machine';
+import {
+  getReleases,
+  getRepositoryUrl,
+  renderMarkdown,
+  resolveContributors,
+} from 'changelog-machine';
 
-const cwd = process.cwd();
-const releases = await getReleases(cwd);
-const markdown = renderMarkdown(releases, {
-  repositoryUrl: await getRepositoryUrl(cwd),
-});
-const unreleased = releases.find(release => release.tag === 'Unreleased');
-const latestTag = releases.find(release => release.tag !== 'Unreleased')?.tag;
-const versionPlan = await planVersion(unreleased?.commits ?? [], latestTag, cwd);
+const releases = await getReleases();
+const repositoryUrl = await getRepositoryUrl();
+const markdown = renderMarkdown(releases, { repositoryUrl });
+
+// Optional network enrichment
+const contributors = await resolveContributors(
+  releases.flatMap(release => release.commits),
+  repositoryUrl,
+);
+const enriched = renderMarkdown(releases, { repositoryUrl, contributors });
 ```
 
-The API returns strings and version plans without writing files. Exports also include `parseCommit`, `recommendedBump`, and TypeScript types. The package is ESM-only. This redesign replaces the old `printMarkdown` API and configuration format and should be released as a major version.
+Also exports `parseCommit`, `recommendedBump`, `planVersion`, and TypeScript types.
+Pass a boundary tag to `getReleases(cwd, tag)` for incremental history.
+The API does not write files. Explicit GitLab profiles can be supplied to the renderer.
+
+**ESM-only.** Replaces the old `printMarkdown` API and JSON configuration; requires a major release.
 
 ## Development and publishing
 
@@ -139,10 +155,8 @@ npm run lint
 npm pack --dry-run
 ```
 
-Tests live next to their source modules as `name.test.ts` and import application functions only from the matching module. They use Node's built-in test runner and local temporary Git repositories.
-
-The root `tsconfig.json` type-checks both source and tests for editor support. `tsconfig.build.json` excludes tests from published builds; `tsconfig.test.json` compiles everything into the ignored `.test-build/` directory for execution. No nested TypeScript configurations are needed.
-
-TypeScript 7 and Node type definitions are development dependencies only; published code is ordinary JavaScript.
-
-The `files` allowlist in `package.json` replaces `.npmignore`: only compiled `lib/`, executable `bin/`, and the license are explicitly included. npm also includes package metadata and README. `prepack` builds before `npm pack` or `npm publish`; source, tests, and development tooling are not shipped. Publishing CI runs only when a matching `v<package-version>` tag is pushed. After successful npm publication, it creates a GitHub Release with notes generated for that tag only; prerelease tags are marked as prereleases.
+- Tests live beside source as `name.test.ts`, using Node's test runner.
+- Root TypeScript config covers source and tests; build config excludes tests.
+- TypeScript 7 is development-only; npm ships compiled JavaScript and types.
+- `package.json`'s `files` allowlist replaces `.npmignore`; `prepack` builds automatically.
+- Push a matching `v<package-version>` tag to publish to npm and create a GitHub Release.
