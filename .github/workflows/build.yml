@@ -1,28 +1,19 @@
-name: Build + Test
-
+name: Build and test
 on: [push, pull_request]
-
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [22, 24]
     steps:
-      - name: Checkout 🛎️
-        uses: actions/checkout@v2
-      - name: Setup Node.js ⚙️
-        uses: actions/setup-node@v2
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 'lts/*'
-      - name: Install node_modules 📦
-        run: npm ci
-      - name: Cache node_modules 💾
-        uses: actions/cache@v2
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-      - name: Test + Build ⚒️
-        run: |
-          npm test
-          npm run lint
-          npm run build
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npm test
+      - run: npm run lint
+      - run: npm pack --dry-run

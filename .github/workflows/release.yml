@@ -1,60 +1,57 @@
-name: Release + Publish
-
+name: Publish
 on:
-  workflow_dispatch:
-    inputs:
-      versionChange:
-        type: choice
-        description: Select the version change
-        requried: true
-        options:
-          - major
-          - minor
-          - patch
-
+  push:
+    tags: ['v*']
+permissions:
+  contents: write
 jobs:
-  release:
+  publish:
     runs-on: ubuntu-latest
-    env:
-      VERSION_CHANGE: ${{ github.event.inputs.versionChange }}
     steps:
-      - name: Checkout 🛎️
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Setup Node.js ⚙️
-        uses: actions/setup-node@v2
+      - uses: actions/setup-node@v4
         with:
-          node-version: 'lts/*'
-          registry-url: 'https://registry.npmjs.org'
-      - name: Install node_modules 📦
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npm test
+      - run: npm run lint
+      - name: Verify tag matches package version
+        run: test "$GITHUB_REF_NAME" = "v$(node -p "require('./package.json').version")"
+      - name: Generate release notes
+        env:
+          RELEASE_NOTES: ${{ runner.temp }}/release-notes.md
         run: |
-          npm ci
-      - name: Update version ↗
-        run: |
-          git config --global user.name 'Philipp Kief'
-          git config --global user.email 'PKief@users.noreply.github.com'
-          git config --global push.followTags true
-          npm version ${{ env.VERSION_CHANGE }} -m "Release %s"
-      - name: Get meta data 🔍
-        run: |
-          NODE_VERSION=$(node -p -e "require('./package.json').version")
-          echo VERSION=$NODE_VERSION >> $GITHUB_ENV
-          NODE_NAME=$(node -p -e "require('./package.json').name")
-          echo NAME=$NODE_NAME >> $GITHUB_ENV
-          NODE_DISPLAY_NAME=$(node -p -e "require('./package.json').displayName")
-          echo DISPLAY_NAME=$NODE_DISPLAY_NAME >> $GITHUB_ENV
-      - name: Build ⚒️
-        run: npm run build
-      - name: Push tags 📌
-        run: git push
-      - name: Release ${{ env.VERSION }} 🔆
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: v${{ env.VERSION }}
-          name: ${{ env.DISPLAY_NAME }} v${{ env.VERSION }}
-          generate_release_notes: true
-      - name: Publish to NPM Registry 🚀
-        run: npm publish
+          node --input-type=module <<'JS'
+          import { writeFile } from 'node:fs/promises';
+          import { getReleases, getRepositoryUrl, renderMarkdown } from './lib/index.js';
+
+          const releases = await getReleases();
+          const release = releases.find(release => release.tag === process.env.GITHUB_REF_NAME);
+          if (!release) throw new Error(`Release tag not found: ${process.env.GITHUB_REF_NAME}`);
+
+          const repositoryUrl = await getRepositoryUrl();
+          const notes = renderMarkdown([release], { repositoryUrl });
+          await writeFile(process.env.RELEASE_NOTES, notes);
+          JS
+      - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_NOTES: ${{ runner.temp }}/release-notes.md
+        run: |
+          prerelease=()
+          if [[ "$GITHUB_REF_NAME" == *-* ]]; then
+            prerelease=(--prerelease)
+          fi
+          gh release create "$GITHUB_REF_NAME" \
+            --verify-tag \
+            --title "changelog-machine $GITHUB_REF_NAME" \
+            --notes-file "$RELEASE_NOTES" \
+            "${prerelease[@]}"
