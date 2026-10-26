@@ -73,6 +73,8 @@ Existing files must use `# Changelog` and `## <version-tag>` / `## Unreleased` h
 
 Sections contain no added emojis. Conventional types map to Enhancements (`feat`), Fixes (`fix`), Performance (`perf`), Documentation, Refactors, Tests, Build, CI, Chores and Reverts. Unknown conventional types go under Other Changes. Breaking changes have their own section, including multiline breaking-change notes.
 
+Release bookkeeping messages such as `release: v1.2.3`, `chore(release): v1.2.3`, and `chore: release v1.2.3` are excluded, including with `--include-non-conventional`. Release tooling changes and unrelated chores remain visible. Run `--full` to remove previously generated release entries from historical sections.
+
 Scopes and description Markdown are preserved. Trailing `(#123)` references link to pull requests; otherwise entries link to their commit. Supported public hosts are GitHub, GitLab and Bitbucket. Unsupported hosts produce plain references. Contributor names come from included commits, honoring Git `.mailmap`. Emails are never used as contributor labels; email-only names become `Unknown contributor`. Recognizable plain and URL-encoded email addresses are redacted throughout generated Markdown, including descriptions and breaking notes. Merge commits are excluded; squash commit messages are supported.
 
 ### Optional contributor profiles

@@ -2,6 +2,34 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { parseCommit, recommendedBump } from './parse.js';
 
+test('release bookkeeping is excluded even when other commits are included', () => {
+  for (const subject of [
+    'release: v5.39.0',
+    'chore(release): v5.39.0',
+    'chore: release v5.39.0',
+    'release: 1.2.3-beta.1+build',
+    'chore(release): v1.2.3 (#42)',
+  ]) {
+    assert.equal(parseCommit(commit(subject)), undefined, subject);
+    assert.equal(parseCommit(commit(subject), true), undefined, subject);
+  }
+});
+
+test('real release tooling changes and unrelated chores remain visible', () => {
+  for (const subject of [
+    'chore: update tooling',
+    'chore(release): fix publication script',
+    'release: improve release documentation',
+    'feat(release): add publishing support',
+  ]) {
+    assert.ok(parseCommit(commit(subject)), subject);
+  }
+  assert.equal(
+    recommendedBump([commit('release: v5.39.0'), commit('fix: bug')]),
+    'patch'
+  );
+});
+
 const commit = (subject: string, body = '') => ({
   hash: '123456789abcdef',
   name: 'Alice',

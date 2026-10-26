@@ -1,3 +1,4 @@
+import { isVersionTag } from '../git/tags.js';
 import type { Commit, ParsedCommit } from '../types.js';
 
 const conventionalHeaderPattern =
@@ -42,20 +43,41 @@ function breakingNotes(body: string): string[] {
   return notes;
 }
 
+function isReleaseCommit(
+  type: string,
+  scope: string | undefined,
+  description: string
+): boolean {
+  const version = description.startsWith('release ')
+    ? description.slice('release '.length)
+    : description;
+  const releaseType = type === 'release';
+  const releaseChore =
+    type === 'chore' &&
+    (scope === 'release' || description.startsWith('release '));
+  return (releaseType || releaseChore) && isVersionTag(version);
+}
+
 export function parseCommit(
   commit: Commit,
   includeNonConventional = false
 ): ParsedCommit | undefined {
-  const headerMatch =
-    /^([A-Za-z][A-Za-z0-9-]*)(?:\(([^()\r\n]+)\))?(!)?:\s+(.+)$/.exec(
-      commit.subject.trim()
-    );
+  const headerMatch = conventionalHeaderPattern.exec(commit.subject.trim());
   if (!headerMatch && !includeNonConventional) return undefined;
 
   let description = headerMatch ? headerMatch[4] : commit.subject.trim();
   const pullRequestMatch = pullRequestSuffixPattern.exec(description);
   if (pullRequestMatch)
     description = description.slice(0, pullRequestMatch.index).trimEnd();
+  if (
+    headerMatch &&
+    isReleaseCommit(
+      headerMatch[1].toLowerCase(),
+      headerMatch[2]?.toLowerCase(),
+      description
+    )
+  )
+    return undefined;
   const notes = breakingNotes(commit.body);
   return {
     ...commit,
