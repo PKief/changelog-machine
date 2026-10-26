@@ -37,6 +37,8 @@ changelog-machine --bump --full           # Update metadata and regenerate histo
 | `--help`, `-h` | Display usage |
 | `--version`, `-v` | Display the tool version |
 
+Long-running Git reads and contributor lookups show an animated progress indicator on interactive stderr. Fast operations and non-interactive output stay silent; stdout remains clean for `--dry-run` output.
+
 There is no configuration file. Network access is disabled unless `--resolve-contributors` is requested. Nothing automatically fetches Git history, commits, tags, pushes, runs npm lifecycle hooks, or publishes.
 
 ### Incremental updates and scaling

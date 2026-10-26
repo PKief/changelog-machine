@@ -8,6 +8,7 @@ import type { Release } from '../types.js';
 import { planVersion } from '../version/plan.js';
 import type { FilePlan } from './files.js';
 import type { Flags } from './options.js';
+import { withProgress } from './progress.js';
 
 export async function planBump(
   releases: Release[],
@@ -79,7 +80,9 @@ export async function planChangelog(
     .flatMap((release) => release.commits)
     .filter((commit) => parseCommit(commit, flags['include-non-conventional']));
   const contributors = flags['resolve-contributors']
-    ? await resolveContributors(commits, url)
+    ? await withProgress('Resolving contributor profiles', () =>
+        resolveContributors(commits, url)
+      )
     : undefined;
   const markdown = renderMarkdown(selectedReleases, {
     repositoryUrl: url,

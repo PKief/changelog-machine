@@ -5,6 +5,7 @@ import { getLatestReleaseTag, getReleases } from '../git/history.js';
 import { apply } from './files.js';
 import { parseFlags, showInformation, validateOptions } from './options.js';
 import { changelogPath, planBump, planChangelog } from './plans.js';
+import { withProgress } from './progress.js';
 
 async function readChangelog(path: string): Promise<string | undefined> {
   try {
@@ -28,8 +29,14 @@ export async function run(args = process.argv.slice(2)): Promise<void> {
   const boundary =
     existing === undefined ? undefined : parseChangelog(existing).boundaryTag;
   const bumpBoundary =
-    flags.bump && !writesChangelog ? await getLatestReleaseTag(cwd) : undefined;
-  const releases = await getReleases(cwd, boundary ?? bumpBoundary);
+    flags.bump && !writesChangelog
+      ? await withProgress('Finding latest release', () =>
+          getLatestReleaseTag(cwd)
+        )
+      : undefined;
+  const releases = await withProgress('Reading Git releases', () =>
+    getReleases(cwd, boundary ?? bumpBoundary)
+  );
   const latestTag =
     releases.find((release) => release.tag !== 'Unreleased')?.tag ??
     releases.find((release) => release.tag === 'Unreleased')?.previousTag;
