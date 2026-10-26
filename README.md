@@ -94,8 +94,10 @@ Adds verified profile links next to Git author names. Network access is **opt-in
 Unresolved users fall back to Git author names, never emails. Email-only names
 become `Unknown contributor`. No username guessing or email searches.
 
-Lookups use five-second timeouts, three concurrent requests, and per-run
-commit deduplication. Rate limits stop queued requests; enriched results may vary.
+Lookups are grouped by mailmapped author identity and cached within a run. One
+successful request covers all that author's commits; unresolved authors get at
+most two attempts. Requests use five-second timeouts and three concurrent workers.
+Rate limits stop queued requests with one warning; enriched results may vary.
 
 ## Version bumps
 

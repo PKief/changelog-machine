@@ -1,3 +1,5 @@
+import type { AuthorCommit } from './authors.js';
+import { groupAuthorCommits } from './authors.js';
 import type { ContributorProfile } from './profile.js';
 import { readBitbucketProfile, readGitHubProfile } from './profile.js';
 import type { Repository } from './repository.js';
@@ -11,7 +13,7 @@ export type { ContributorProfile } from './profile.js';
 
 const REQUEST_TIMEOUT_MS = 5_000;
 const MAX_CONCURRENT_REQUESTS = 3;
-const validHash = /^[a-f\d]{7,64}$/i;
+const MAX_ATTEMPTS_PER_AUTHOR = 2;
 
 function readProfile(
   data: unknown,
@@ -47,36 +49,49 @@ async function requestProfile(
 }
 
 export async function resolveContributors(
-  commits: readonly { hash: string }[],
+  commits: readonly AuthorCommit[],
   repositoryUrl?: string
 ): Promise<Record<string, ContributorProfile>> {
   const repository = parseRepository(repositoryUrl);
   if (!repository) return {};
 
   const supportedRepository = repository;
-  const hashes = [
-    ...new Set(
-      commits.map(({ hash }) => hash).filter((hash) => validHash.test(hash))
-    ),
-  ];
+  const authors = groupAuthorCommits(commits);
   const profiles: Record<string, ContributorProfile> = {};
-  const token = getRepositoryToken(supportedRepository);
+  const token = getRepositoryToken(repository);
   let next = 0;
   let stopped = false;
 
+  async function resolveAuthor(hashes: string[]): Promise<void> {
+    for (const hash of hashes.slice(0, MAX_ATTEMPTS_PER_AUTHOR)) {
+      if (stopped) return;
+      const result = await requestProfile(supportedRepository, hash, token);
+      if (result.stop) {
+        if (!stopped)
+          console.error(
+            'Contributor lookup stopped: authentication failed or API rate limit reached. Using Git author names for unresolved contributors.'
+          );
+        stopped = true;
+        return;
+      }
+      if (result.profile) {
+        for (const authorHash of hashes) profiles[authorHash] = result.profile;
+        return;
+      }
+    }
+  }
+
   async function worker(): Promise<void> {
     while (!stopped) {
-      const hash = hashes[next++];
-      if (!hash) return;
-      const result = await requestProfile(supportedRepository, hash, token);
-      if (result.stop) stopped = true;
-      if (result.profile) profiles[hash] = result.profile;
+      const hashes = authors[next++];
+      if (!hashes) return;
+      await resolveAuthor(hashes);
     }
   }
 
   await Promise.all(
     Array.from(
-      { length: Math.min(MAX_CONCURRENT_REQUESTS, hashes.length) },
+      { length: Math.min(MAX_CONCURRENT_REQUESTS, authors.length) },
       worker
     )
   );

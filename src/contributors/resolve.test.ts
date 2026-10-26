@@ -7,6 +7,7 @@ const fetchMock = mock.method(
   'fetch',
   async () => new Response('{}')
 );
+const consoleErrorMock = mock.method(console, 'error', () => {});
 const previousTokens = {
   gh: process.env.GH_TOKEN,
   github: process.env.GITHUB_TOKEN,
@@ -15,6 +16,7 @@ const previousTokens = {
 
 afterEach(() => {
   fetchMock.mock.resetCalls();
+  consoleErrorMock.mock.resetCalls();
   process.env.GH_TOKEN = previousTokens.gh;
   process.env.GITHUB_TOKEN = previousTokens.github;
   process.env.BITBUCKET_TOKEN = previousTokens.bitbucket;
@@ -137,6 +139,151 @@ test('deduplicates commits and omits invalid API profiles and request failures',
     {}
   );
   assert.equal(callCount, 2);
+});
+
+test('caches one successful lookup for many commits with email variations', async () => {
+  let callCount = 0;
+  setFetch(async () => {
+    callCount++;
+    return Response.json(githubProfile);
+  });
+  const commits = Array.from({ length: 100 }, (_, index) => ({
+    hash: `abcdef${index.toString(16).padStart(2, '0')}`,
+    name: index % 2 ? 'Alice Example' : 'A. Example',
+    email: index % 2 ? ' Alice@Example.com ' : 'alice@example.COM',
+  }));
+
+  const profiles = await resolveContributors(
+    commits,
+    'https://github.com/org/repo'
+  );
+  assert.equal(callCount, 1);
+  assert.equal(Object.keys(profiles).length, 100);
+  assert.ok(
+    Object.values(profiles).every((profile) => profile.username === 'alice')
+  );
+});
+
+test('does not merge same-name authors with different emails', async () => {
+  let callCount = 0;
+  setFetch(async () => {
+    callCount++;
+    return Response.json(githubProfile);
+  });
+  const profiles = await resolveContributors(
+    [
+      { hash: 'abcdef1', name: 'Alex Smith', email: 'alex@one.example' },
+      { hash: 'abcdef2', name: 'Alex Smith', email: 'alex@two.example' },
+    ],
+    'https://github.com/org/repo'
+  );
+
+  assert.equal(callCount, 2);
+  assert.deepEqual(Object.keys(profiles).sort(), ['abcdef1', 'abcdef2']);
+});
+
+test('tries subsequent author hashes and shares the found profile with all hashes', async () => {
+  const requested: string[] = [];
+  setFetch(async (input) => {
+    const endpoint = String(input);
+    requested.push(endpoint);
+    return endpoint.endsWith('/abcdef1')
+      ? new Response('{}', { status: 404 })
+      : Response.json(githubProfile);
+  });
+  const profiles = await resolveContributors(
+    [
+      { hash: 'abcdef1', email: 'same@example.com' },
+      { hash: 'abcdef2', email: ' SAME@example.com ' },
+      { hash: 'abcdef3', email: 'same@example.com' },
+    ],
+    'https://github.com/org/repo'
+  );
+
+  assert.deepEqual(
+    requested.map((endpoint) => endpoint.split('/').at(-1)),
+    ['abcdef1', 'abcdef2']
+  );
+  assert.deepEqual(Object.keys(profiles).sort(), [
+    'abcdef1',
+    'abcdef2',
+    'abcdef3',
+  ]);
+});
+
+test('limits unresolved author lookups to two attempts', async () => {
+  let callCount = 0;
+  setFetch(async () => {
+    callCount++;
+    return new Response('{}', { status: 404 });
+  });
+  const profiles = await resolveContributors(
+    Array.from({ length: 5 }, (_, index) => ({
+      hash: `abcdef${index + 1}`,
+      email: 'unresolved@example.com',
+    })),
+    'https://github.com/org/repo'
+  );
+
+  assert.equal(callCount, 2);
+  assert.deepEqual(profiles, {});
+});
+
+test('does not retain the author cache between invocations', async () => {
+  let callCount = 0;
+  setFetch(async () => {
+    callCount++;
+    return Response.json(githubProfile);
+  });
+  const commits = [
+    { hash: 'abcdef1', email: 'same@example.com' },
+    { hash: 'abcdef2', email: 'SAME@example.com' },
+  ];
+  await resolveContributors(commits, 'https://github.com/org/repo');
+  await resolveContributors(commits, 'https://github.com/org/repo');
+
+  assert.equal(callCount, 2);
+});
+
+test('warns once on rate limiting without exposing author or token data', async () => {
+  process.env.GH_TOKEN = 'private-token-value';
+  process.env.GITHUB_TOKEN = '';
+  setFetch(async () => new Response('', { status: 429 }));
+  const profiles = await resolveContributors(
+    [
+      { hash: 'abcdef1', name: 'Private Author', email: 'private@example.com' },
+      {
+        hash: 'abcdef2',
+        name: 'Private Author',
+        email: 'private2@example.com',
+      },
+      {
+        hash: 'abcdef3',
+        name: 'Private Author',
+        email: 'private3@example.com',
+      },
+      {
+        hash: 'abcdef4',
+        name: 'Private Author',
+        email: 'private4@example.com',
+      },
+      {
+        hash: 'abcdef5',
+        name: 'Private Author',
+        email: 'private5@example.com',
+      },
+    ],
+    'https://github.com/org/repo'
+  );
+
+  assert.deepEqual(profiles, {});
+  assert.equal(consoleErrorMock.mock.callCount(), 1);
+  const warning = String(consoleErrorMock.mock.calls[0]?.arguments[0]);
+  assert.match(warning, /rate limit reached/);
+  assert.doesNotMatch(
+    warning,
+    /private@example.com|Private Author|private-token-value/
+  );
 });
 
 test('stops scheduling queued requests after a rate limit response', async () => {
