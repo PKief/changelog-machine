@@ -1,24 +1,35 @@
-### Changelog 
+# Changelog
 
- All notable changes to this project will be documented in this file. Dates are displayed in UTC.
+All notable changes to this project will be documented in this file.
 
- 
-#### [v1.1.0](https://github.com/PKief/changelog-machine/compare/v1.0.2...v1.1.0) 
+## v1.1.0
 
-> June 22, 2024 
+[compare changes](https://github.com/PKief/changelog-machine/compare/v1.0.2...v1.1.0)
 
-- Handle missing package.json or version attribute [`#4`](https://github.com/PKief/changelog-machine/pull/4)
-- Add meta information [`#3`](https://github.com/PKief/changelog-machine/pull/3)
- 
-#### [v1.0.2](https://github.com/PKief/changelog-machine/compare/v1.0.1...v1.0.2) 
+### Enhancements
 
-> February 18, 2022 
+- Add meta information ([#3](https://github.com/PKief/changelog-machine/pull/3))
 
-- Fix wrong HEAD reference in link [`e4387c4`](https://github.com/PKief/changelog-machine/commit/e4387c4)
- 
-#### [v1.0.1](https://github.com/PKief/changelog-machine/compare/v1.0.0...v1.0.1) 
+### Fixes
 
-> February 9, 2022 
+- Handle missing package.json or version attribute ([#4](https://github.com/PKief/changelog-machine/pull/4))
 
-- Add display name [`3ec29b0`](https://github.com/PKief/changelog-machine/commit/3ec29b0)
-- Update meta info [`c09294a`](https://github.com/PKief/changelog-machine/commit/c09294a)
+## v1.0.2
+
+[compare changes](https://github.com/PKief/changelog-machine/compare/v1.0.1...v1.0.2)
+
+### Fixes
+
+- Fix wrong HEAD reference in link ([e4387c4](https://github.com/PKief/changelog-machine/commit/e4387c4))
+
+## v1.0.1
+
+[compare changes](https://github.com/PKief/changelog-machine/compare/v1.0.0...v1.0.1)
+
+### Enhancements
+
+- Add display name ([3ec29b0](https://github.com/PKief/changelog-machine/commit/3ec29b0))
+
+### Chores
+
+- Update meta info ([c09294a](https://github.com/PKief/changelog-machine/commit/c09294a))
