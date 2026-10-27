@@ -7,7 +7,7 @@ Updates missing releases and refreshes Unreleased in CHANGELOG.md by default.
 Creates a complete changelog when the file does not exist.
 
   --full                      Replace the entire CHANGELOG.md from Git history
-  --bump                      Infer and update the package version (files only)
+  --bump                      Infer version; update package metadata and changelog
   --dry-run                   Preview without writing any files
   --output <path>              Changelog destination (default: CHANGELOG.md)
   --repo-url <url>             Repository URL for links
@@ -37,11 +37,6 @@ export function parseFlags(args: string[]) {
     },
     allowPositionals: false,
   }).values;
-}
-
-export function validateOptions(flags: Flags): void {
-  if (flags.output && flags.bump && !flags.full)
-    throw new Error('--output requires changelog generation, not --bump alone');
 }
 
 export async function showInformation(flags: Flags): Promise<boolean> {

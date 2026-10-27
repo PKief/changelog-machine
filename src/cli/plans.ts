@@ -5,6 +5,7 @@ import { parseCommit } from '../commits/parse.js';
 import { resolveContributors } from '../contributors/resolve.js';
 import { getRepositoryUrl } from '../git/remote.js';
 import type { Release } from '../types.js';
+import type { VersionPlan } from '../version/plan.js';
 import { planVersion } from '../version/plan.js';
 import type { FilePlan } from './files.js';
 import type { Flags } from './options.js';
@@ -14,7 +15,7 @@ export async function planBump(
   releases: Release[],
   cwd: string,
   latestTag?: string
-): Promise<FilePlan[]> {
+): Promise<VersionPlan> {
   const unreleased = releases.find((release) => release.tag === 'Unreleased');
   const plan = await planVersion(unreleased?.commits ?? [], latestTag, cwd);
   console.error(
@@ -22,7 +23,7 @@ export async function planBump(
       ? `${plan.current} → ${plan.next} (${plan.bump})`
       : `No version bump (${plan.current})`
   );
-  return plan.files;
+  return plan;
 }
 
 async function repositoryUrl(

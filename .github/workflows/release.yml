@@ -1,57 +1,39 @@
-name: Publish
+name: Release
 on:
-  push:
-    tags: ['v*']
+  workflow_dispatch:
+concurrency:
+  group: release
 permissions:
   contents: write
+  id-token: write
 jobs:
-  publish:
+  release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: main
           fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-          registry-url: https://registry.npmjs.org
           cache: npm
-      - run: npm ci
-      - run: npm run build
-      - run: npm test
-      - run: npm run lint
-      - name: Verify tag matches package version
-        run: test "$GITHUB_REF_NAME" = "v$(node -p "require('./package.json').version")"
-      - name: Generate release notes
-        env:
-          RELEASE_NOTES: ${{ runner.temp }}/release-notes.md
-        run: |
-          node --input-type=module <<'JS'
-          import { writeFile } from 'node:fs/promises';
-          import { getReleases, getRepositoryUrl, renderMarkdown } from './lib/index.js';
-
-          const releases = await getReleases();
-          const release = releases.find(release => release.tag === process.env.GITHUB_REF_NAME);
-          if (!release) throw new Error(`Release tag not found: ${process.env.GITHUB_REF_NAME}`);
-
-          const repositoryUrl = await getRepositoryUrl();
-          const notes = renderMarkdown([release], { repositoryUrl });
-          await writeFile(process.env.RELEASE_NOTES, notes);
-          JS
-      - run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - name: Create GitHub Release
+      - run: npm install --global npm@11
+      - run: npm ci && npm run build && npm test && npm run lint
+      - name: Bump, tag and publish
         env:
           GH_TOKEN: ${{ github.token }}
-          RELEASE_NOTES: ${{ runner.temp }}/release-notes.md
         run: |
-          prerelease=()
-          if [[ "$GITHUB_REF_NAME" == *-* ]]; then
-            prerelease=(--prerelease)
-          fi
-          gh release create "$GITHUB_REF_NAME" \
-            --verify-tag \
-            --title "changelog-machine $GITHUB_REF_NAME" \
-            --notes-file "$RELEASE_NOTES" \
-            "${prerelease[@]}"
+          previous=$(node -p "require('./package.json').version")
+          node bin/cli.js --bump
+          version=$(node -p "require('./package.json').version")
+          if [[ "$version" == "$previous" ]]; then exit 0; fi
+          tag="v$version"
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add package.json package-lock.json CHANGELOG.md
+          git commit -m "chore(release): $tag"
+          git tag "$tag"
+          git push --atomic origin HEAD:refs/heads/main "refs/tags/$tag"
+          npm publish
+          gh release create "$tag" --verify-tag --title "changelog-machine $tag" --generate-notes

@@ -148,7 +148,9 @@ describe('CLI integration', { concurrency: 4 }, () => {
       assert.equal(result.code, 0);
       assert.match(result.stderr, /1\.0\.1 → 1\.1\.0 \(minor\)/);
       assert.doesNotMatch(result.stderr, /Updated/);
-      assert.match(result.stdout, /## Unreleased/);
+      assert.match(result.stdout, /## v1\.1\.0/);
+      assert.doesNotMatch(result.stdout, /## Unreleased/);
+      assert.match(result.stdout, /## v1\.0\.1/);
       assert.match(result.stdout, /## v1\.0\.0/);
       assert.equal(await readFile(join(cwd, 'package.json'), 'utf8'), manifest);
       assert.equal(
@@ -199,7 +201,7 @@ describe('CLI integration', { concurrency: 4 }, () => {
     });
   });
 
-  test('bump updates files only and refuses a repeated inferred bump', async () => {
+  test('bump updates metadata and creates a release changelog without creating tags', async () => {
     await fixture(async (cwd) => {
       await writeFile(join(cwd, 'package.json'), '{"version":"1.0.0"}\n');
       await writeFile(
@@ -223,15 +225,27 @@ describe('CLI integration', { concurrency: 4 }, () => {
       );
       assert.equal(lock.version, '1.0.1');
       assert.equal(lock.packages[''].version, '1.0.1');
+      const changelog = await readFile(join(cwd, 'CHANGELOG.md'), 'utf8');
+      assert.match(changelog, /^## v1\.0\.1/m);
+      assert.doesNotMatch(changelog, /## Unreleased/);
       const after = await snapshot(cwd);
       assert.equal(after.head, before.head);
       assert.equal(after.tags, before.tags);
       const repeated = await cli(cwd, '--bump');
       assert.equal(repeated.code, 1);
-      assert.match(repeated.stderr, /refusing a repeated inferred bump/);
+      assert.match(repeated.stderr, /does not match|already been bumped/);
+      assert.equal(
+        await readFile(join(cwd, 'package.json'), 'utf8'),
+        '{"version":"1.0.1"}\n'
+      );
+      assert.equal(
+        await readFile(join(cwd, 'CHANGELOG.md'), 'utf8'),
+        changelog
+      );
       assert.deepEqual(await snapshot(cwd), after);
       assert.deepEqual((await readdir(cwd)).sort(), [
         '.git',
+        'CHANGELOG.md',
         'package-lock.json',
         'package.json',
       ]);
@@ -325,6 +339,79 @@ describe('CLI integration', { concurrency: 4 }, () => {
     });
   });
 
+  test('bump dry-run previews the next release without writing files or tags', async () => {
+    await fixture(async (cwd) => {
+      const manifest = '{"version":"1.0.0"}\n';
+      await writeFile(join(cwd, 'package.json'), manifest);
+      await commit(cwd, 'feat: initial');
+      await git(['tag', 'v1.0.0'], cwd);
+      await commit(cwd, 'fix: bug');
+      const before = await snapshot(cwd);
+      const result = await cli(cwd, '--bump', '--dry-run');
+      assert.equal(result.code, 0);
+      assert.match(result.stdout, /^## v1\.0\.1/m);
+      assert.doesNotMatch(result.stdout, /## Unreleased/);
+      assert.equal(await readFile(join(cwd, 'package.json'), 'utf8'), manifest);
+      await assert.rejects(readFile(join(cwd, 'CHANGELOG.md'), 'utf8'), {
+        code: 'ENOENT',
+      });
+      assert.deepEqual(await snapshot(cwd), before);
+      assert.deepEqual((await readdir(cwd)).sort(), ['.git', 'package.json']);
+    });
+  });
+
+  test('bump --full writes the complete history and inferred release', async () => {
+    await fixture(async (cwd) => {
+      await writeFile(join(cwd, 'package.json'), '{"version":"1.0.1"}\n');
+      await history(cwd);
+      const before = await snapshot(cwd);
+      const result = await cli(cwd, '--bump', '--full');
+      assert.equal(result.code, 0);
+      assert.match(result.stderr, /1\.0\.1 → 1\.1\.0 \(minor\)/);
+      assert.equal(
+        JSON.parse(await readFile(join(cwd, 'package.json'), 'utf8')).version,
+        '1.1.0'
+      );
+      const changelog = await readFile(join(cwd, 'CHANGELOG.md'), 'utf8');
+      assert.match(changelog, /^## v1\.1\.0/m);
+      assert.match(changelog, /## v1\.0\.1/);
+      assert.match(changelog, /## v1\.0\.0/);
+      assert.doesNotMatch(changelog, /## Unreleased/);
+      assert.equal((await snapshot(cwd)).head, before.head);
+      assert.equal((await snapshot(cwd)).tags, before.tags);
+    });
+  });
+
+  test('bump promotes Unreleased, preserves older history, and honors --output', async () => {
+    await fixture(async (cwd) => {
+      await writeFile(join(cwd, 'package.json'), '{"version":"1.0.1"}\n');
+      await history(cwd);
+      const oldBytes =
+        '## v1.0.1\n\nHand-maintained second release.\n\n## v1.0.0\n\nFirst release.\n';
+      const changelog = `# Changelog\n\n## Unreleased\n\nStale draft.\n\n${oldBytes}`;
+      const output = join(cwd, 'history.md');
+      await writeFile(output, changelog);
+      const before = await snapshot(cwd);
+      const result = await cli(cwd, '--bump', '--output', 'history.md');
+      assert.equal(result.code, 0);
+      assert.match(result.stderr, /1\.0\.1 → 1\.1\.0 \(minor\)/);
+      assert.equal(
+        JSON.parse(await readFile(join(cwd, 'package.json'), 'utf8')).version,
+        '1.1.0'
+      );
+      const updated = await readFile(output, 'utf8');
+      assert.match(updated, /^## v1\.1\.0/m);
+      assert.match(updated, /Upcoming feature/);
+      assert.doesNotMatch(updated, /Unreleased|Stale draft/);
+      assert.ok(updated.endsWith(oldBytes));
+      assert.equal((await snapshot(cwd)).head, before.head);
+      assert.equal((await snapshot(cwd)).tags, before.tags);
+      await assert.rejects(readFile(join(cwd, 'CHANGELOG.md'), 'utf8'), {
+        code: 'ENOENT',
+      });
+    });
+  });
+
   test('bump without qualifying commits is a no-op', async () => {
     await fixture(async (cwd) => {
       const manifest = '{"version":"1.0.0"}\n';
@@ -337,7 +424,11 @@ describe('CLI integration', { concurrency: 4 }, () => {
       assert.equal(result.stdout, '');
       assert.match(result.stderr, /No version bump \(1\.0\.0\)/);
       assert.equal(await readFile(join(cwd, 'package.json'), 'utf8'), manifest);
+      await assert.rejects(readFile(join(cwd, 'CHANGELOG.md'), 'utf8'), {
+        code: 'ENOENT',
+      });
       assert.deepEqual(await snapshot(cwd), before);
+      assert.deepEqual((await readdir(cwd)).sort(), ['.git', 'package.json']);
     });
   });
 
@@ -351,10 +442,7 @@ describe('CLI integration', { concurrency: 4 }, () => {
       for (const [args, message] of [
         [['--unknown'], /Unknown option/],
         [['unexpected'], /Unexpected argument/],
-        [
-          ['--bump', '--output', 'other.md'],
-          /--output requires changelog generation/,
-        ],
+        [['--bump', '--output'], /--output.*(value|required)/i],
         [
           ['--full', '--repo-url', 'http://example.com/repo'],
           /--repo-url must be an HTTPS/,

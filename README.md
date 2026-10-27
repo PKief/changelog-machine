@@ -12,7 +12,7 @@ npx changelog-machine                 # Create or update CHANGELOG.md
 npx changelog-machine --dry-run       # Preview changes
 npx changelog-machine --full          # Rebuild from scratch
 npx changelog-machine --bump --dry-run # Preview the next version
-npx changelog-machine --bump           # Update package metadata only
+npx changelog-machine --bump           # Update package metadata and release changelog
 ```
 
 - **Default:** add newer releases, refresh `Unreleased`, preserve older sections.
@@ -110,12 +110,13 @@ The highest-impact commit since the latest release wins:
 | `fix:` or `perf:` | Patch |
 | Other types | None |
 
-- Updates `package.json` and an existing npm lockfile (versions 1–3).
+- Updates `package.json`, an existing npm lockfile (versions 1–3), and the changelog with `## v<next-version>`. No Git tag is needed to prepare that section; the CLI does not create one.
 - Leaves dependency versions unchanged.
 - Requires the latest tag to match the package version; repeated bumps fail.
 - Without tags, analyzes all commits against the current package version.
 - Prerelease promotion, Yarn/pnpm lockfiles, and workspaces are unsupported.
-- `--bump --full` also rebuilds the changelog; untagged changes stay `Unreleased`.
+- `--bump --full` rebuilds historical sections too. Without `--full`, older sections remain unchanged. `--output` also works with bumps; `--dry-run` previews without writing. No release-worthy commits means no file changes.
+- After a successful bump, commit and create the matching version tag before another incremental update or bump.
 
 Files are staged first and replaced atomically per file—not as a multi-file transaction.
 
@@ -162,4 +163,4 @@ npm pack --dry-run
 - Root TypeScript config covers source and tests; build config excludes tests. Source imports use `.js`, matching published output. A test-only Node loader resolves those imports to `.ts` while executing source directly.
 - TypeScript 7 is development-only; npm ships compiled JavaScript and types.
 - `package.json`'s `files` allowlist replaces `.npmignore`; `prepack` builds automatically.
-- Push a matching `v<package-version>` tag to publish to npm and create a GitHub Release.
+- Use **Actions → Release → Run workflow** on the default branch, or `gh workflow run release.yml --ref main`. No version input is needed: conventional commits determine the bump. The workflow updates package metadata and changelog, commits and pushes a version tag, publishes to npm, and creates a GitHub Release. With no release-worthy commits, it makes no changes. Requires npm trusted publishing configured for this repository and `release.yml`, plus permission for the workflow token to push to the default branch; branch-protection rules may block that push. Tag pushes no longer trigger publishing separately. If npm publication fails after the release commit/tag was pushed, recover manually rather than expecting another click to repeat the release.

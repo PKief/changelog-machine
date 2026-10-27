@@ -1,9 +1,8 @@
 import { readFile } from 'node:fs/promises';
-import { resolve } from 'node:path';
 import { parseChangelog } from '../changelog/update.js';
 import { getLatestReleaseTag, getReleases } from '../git/history.js';
 import { apply } from './files.js';
-import { parseFlags, showInformation, validateOptions } from './options.js';
+import { parseFlags, showInformation } from './options.js';
 import { changelogPath, planBump, planChangelog } from './plans.js';
 import { withProgress } from './progress.js';
 
@@ -19,29 +18,34 @@ async function readChangelog(path: string): Promise<string | undefined> {
 export async function run(args = process.argv.slice(2)): Promise<void> {
   const flags = parseFlags(args);
   if (await showInformation(flags)) return;
-  validateOptions(flags);
   const cwd = process.cwd();
-  const writesChangelog = !flags.bump || flags.full;
-  const existing =
-    writesChangelog && !flags.full
-      ? await readChangelog(changelogPath(flags, cwd))
-      : undefined;
+  const existing = flags.full
+    ? undefined
+    : await readChangelog(changelogPath(flags, cwd));
   const boundary =
     existing === undefined ? undefined : parseChangelog(existing).boundaryTag;
-  const bumpBoundary =
-    flags.bump && !writesChangelog
-      ? await withProgress('Finding latest release', () =>
-          getLatestReleaseTag(cwd)
-        )
-      : undefined;
-  const releases = await withProgress('Reading Git releases', () =>
-    getReleases(cwd, boundary ?? bumpBoundary)
+  const bumpTag = flags.bump ? await getLatestReleaseTag(cwd) : undefined;
+  const bump = flags.bump
+    ? await planBump(await getReleases(cwd, bumpTag), cwd, bumpTag)
+    : undefined;
+  if (flags.bump && !bump?.next) return;
+  let releases = await withProgress('Reading Git releases', () =>
+    getReleases(cwd, boundary)
   );
   const latestTag =
     releases.find((release) => release.tag !== 'Unreleased')?.tag ??
-    releases.find((release) => release.tag === 'Unreleased')?.previousTag;
-  const files = flags.bump ? await planBump(releases, cwd, latestTag) : [];
-  if (writesChangelog)
-    files.push(...(await planChangelog(releases, flags, cwd, existing)));
+    releases.find((release) => release.tag === 'Unreleased')?.previousTag ??
+    boundary;
+  if (bump?.next) {
+    releases = releases.map((release) =>
+      release.tag === 'Unreleased'
+        ? { ...release, tag: `v${bump.next}`, previousTag: latestTag }
+        : release
+    );
+  }
+  const files = [
+    ...(bump?.files ?? []),
+    ...(await planChangelog(releases, flags, cwd, existing)),
+  ];
   if (!flags['dry-run']) await apply(files);
 }
