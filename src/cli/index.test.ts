@@ -16,6 +16,8 @@ import { promisify } from 'node:util';
 
 const execute = promisify(execFile);
 const cliUrl = new URL('./index.js', import.meta.url).href;
+const testLoaderUrl = new URL('../../scripts/test-loader.js', import.meta.url)
+  .href;
 
 async function git(args: string[], cwd: string): Promise<string> {
   const { stdout } = await execute('git', args, {
@@ -34,7 +36,7 @@ async function cli(cwd: string, ...args: string[]) {
   try {
     const result = await execute(
       process.execPath,
-      ['--input-type=module', '-e', script],
+      ['--import', testLoaderUrl, '--input-type=module', '-e', script],
       { cwd }
     );
     return { ...result, code: 0 };

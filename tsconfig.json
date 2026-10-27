@@ -6,6 +6,7 @@
     "strict": true,
     "types": ["node"],
     "skipLibCheck": true,
+    "erasableSyntaxOnly": true,
     "noEmit": true,
     "rootDir": "src"
   },

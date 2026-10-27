@@ -20,12 +20,12 @@
     "LICENSE.md"
   ],
   "engines": {
-    "node": ">=22"
+    "node": ">=24"
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "test": "tsc -p tsconfig.test.json && node --test .test-build/*/*.test.js",
-    "lint": "biome check src",
+    "test": "tsc --noEmit && node --import ./scripts/test-loader.js --test src/*/*.test.ts",
+    "lint": "biome check src scripts",
     "changelog": "npm run build && node bin/cli.js --full",
     "prepack": "npm run build"
   },
@@ -46,7 +46,7 @@
   "funding": "https://github.com/sponsors/pkief",
   "devDependencies": {
     "@biomejs/biome": "^2.6.3",
-    "@types/node": "^22.0.0",
+    "@types/node": "^24.0.0",
     "typescript": "^7.0.2"
   }
 }

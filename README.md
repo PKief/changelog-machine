@@ -1,7 +1,7 @@
 # Changelog Machine
 
 Conventional changelogs and version bumps, with **zero production dependencies**.
-Requires **Node 22+** and **Git**.
+Requires **Node 24+** and **Git**.
 
 ## Quick start
 
@@ -157,8 +157,9 @@ npm run lint
 npm pack --dry-run
 ```
 
-- Tests live beside source as `name.test.ts`, using Node's test runner.
-- Root TypeScript config covers source and tests; build config excludes tests.
+- Tests live beside source as `name.test.ts` and run directly with Node's native TypeScript support; no compiled test directory is needed.
+- `npm test` type-checks first, then runs Node's test runner. Node strips types but does not type-check.
+- Root TypeScript config covers source and tests; build config excludes tests. Source imports use `.js`, matching published output. A test-only Node loader resolves those imports to `.ts` while executing source directly.
 - TypeScript 7 is development-only; npm ships compiled JavaScript and types.
 - `package.json`'s `files` allowlist replaces `.npmignore`; `prepack` builds automatically.
 - Push a matching `v<package-version>` tag to publish to npm and create a GitHub Release.

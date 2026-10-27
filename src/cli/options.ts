@@ -16,7 +16,7 @@ Creates a complete changelog when the file does not exist.
   --help                      Show help
   --version                   Show this tool's version
 
-Requires Node 22+ and Git. Never fetches, commits, tags, pushes or publishes.
+Requires Node 24+ and Git. Never fetches, commits, tags, pushes or publishes.
 `;
 
 export type Flags = ReturnType<typeof parseFlags>;
