@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## v2.1.0
+
+[compare changes](https://github.com/PKief/changelog-machine/compare/v2.0.0...v2.1.0)
+
+### Enhancements
+
+- Delegate version updates to configurable commands ([0c7c2b7e](https://github.com/PKief/changelog-machine/commit/0c7c2b7e603253d4c06593b37423f4e04c164cf1))
+
+### Contributors
+
+- Philipp Kief
+
 ## v2.0.0
 
 [compare changes](https://github.com/PKief/changelog-machine/compare/v1.1.0...v2.0.0)

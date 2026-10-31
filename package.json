@@ -1,6 +1,6 @@
 {
   "name": "changelog-machine",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Minimal, dependency-free conventional changelog and version generator",
   "type": "module",
   "main": "./lib/index.js",
