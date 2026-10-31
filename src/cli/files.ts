@@ -15,7 +15,10 @@ async function fileMode(path: string): Promise<number | undefined> {
   }
 }
 
-export async function apply(files: FilePlan[]): Promise<void> {
+export async function apply(
+  files: FilePlan[],
+  beforeReplace?: () => Promise<void>
+): Promise<void> {
   const staged: { path: string; temporary: string }[] = [];
   try {
     for (const file of files) {
@@ -25,6 +28,8 @@ export async function apply(files: FilePlan[]): Promise<void> {
       staged.push({ path: file.path, temporary });
       await writeFile(temporary, file.content, { flag: 'wx', mode });
     }
+    // Validate and stage changelog destinations before running a mutating command.
+    await beforeReplace?.();
     for (const file of staged) await rename(file.temporary, file.path);
   } finally {
     await Promise.all(

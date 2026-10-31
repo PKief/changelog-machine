@@ -235,8 +235,8 @@ describe('CLI integration', { concurrency: 4 }, () => {
       assert.equal(repeated.code, 1);
       assert.match(repeated.stderr, /does not match|already been bumped/);
       assert.equal(
-        await readFile(join(cwd, 'package.json'), 'utf8'),
-        '{"version":"1.0.1"}\n'
+        JSON.parse(await readFile(join(cwd, 'package.json'), 'utf8')).version,
+        '1.0.1'
       );
       assert.equal(
         await readFile(join(cwd, 'CHANGELOG.md'), 'utf8'),
@@ -464,6 +464,81 @@ describe('CLI integration', { concurrency: 4 }, () => {
         assert.deepEqual(await snapshot(cwd), before);
         assert.deepEqual((await readdir(cwd)).sort(), ['.git', 'package.json']);
       }
+    });
+  });
+
+  test('custom command is previewed but never executed in dry-run or no-op runs', async () => {
+    await fixture(async (cwd) => {
+      await writeFile(join(cwd, 'package.json'), '{"version":"1.0.0"}\n');
+      await commit(cwd, 'feat: initial');
+      await git(['tag', 'v1.0.0'], cwd);
+      const command = 'node -e "process.exit(77)" {version}';
+      const noop = await cli(cwd, '--bump', '--bump-command', command);
+      assert.equal(noop.code, 0);
+      assert.doesNotMatch(noop.stderr, /Running bump command/);
+      await commit(cwd, 'fix: bug');
+      const preview = await cli(
+        cwd,
+        '--bump',
+        '--dry-run',
+        '--bump-command',
+        command
+      );
+      assert.equal(preview.code, 0);
+      assert.match(preview.stderr, /Would run:.*1\.0\.1/);
+      assert.match(preview.stdout, /## v1\.0\.1/);
+      const failed = await cli(cwd, '--bump', '--bump-command', command);
+      assert.equal(failed.code, 1);
+      assert.match(failed.stderr, /Bump command failed/);
+      const mismatch = await cli(
+        cwd,
+        '--bump',
+        '--bump-command',
+        'node -e "" {version}'
+      );
+      assert.equal(mismatch.code, 1);
+      assert.match(mismatch.stderr, /did not set package.json version/);
+      assert.equal(
+        JSON.parse(await readFile(join(cwd, 'package.json'), 'utf8')).version,
+        '1.0.0'
+      );
+      assert.deepEqual((await readdir(cwd)).sort(), ['.git', 'package.json']);
+    });
+  });
+
+  test('custom command updates metadata and opaque lockfiles before writing the changelog', async () => {
+    await fixture(async (cwd) => {
+      await writeFile(join(cwd, 'package.json'), '{"version":"1.0.0"}\n');
+      await writeFile(
+        join(cwd, 'update.cjs'),
+        `const fs = require('node:fs'); fs.writeFileSync('package.json', JSON.stringify({version: process.argv[2]})); fs.writeFileSync('pnpm-lock.yaml', 'package-manager output');`
+      );
+      await writeFile(join(cwd, 'pnpm-lock.yaml'), 'opaque original');
+      await commit(cwd, 'feat: initial');
+      await git(['tag', 'v1.0.0'], cwd);
+      await commit(cwd, 'fix: bug');
+      const before = await snapshot(cwd);
+      const result = await cli(
+        cwd,
+        '--bump',
+        '--bump-command',
+        'node update.cjs {version}'
+      );
+      assert.equal(result.code, 0);
+      assert.equal(
+        JSON.parse(await readFile(join(cwd, 'package.json'), 'utf8')).version,
+        '1.0.1'
+      );
+      assert.equal(
+        await readFile(join(cwd, 'pnpm-lock.yaml'), 'utf8'),
+        'package-manager output'
+      );
+      assert.match(
+        await readFile(join(cwd, 'CHANGELOG.md'), 'utf8'),
+        /## v1\.0\.1/
+      );
+      assert.equal((await snapshot(cwd)).head, before.head);
+      assert.equal((await snapshot(cwd)).tags, before.tags);
     });
   });
 

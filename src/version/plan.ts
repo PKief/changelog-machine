@@ -2,8 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { recommendedBump } from '../commits/parse.js';
 import type { Commit } from '../types.js';
-import { formatJson, type JsonObject, parseObject } from './json.js';
-import { readLockfiles, updateLockfile } from './lockfiles.js';
+import { type JsonObject, parseObject } from './json.js';
 
 export interface VersionPlan {
   current: string;
@@ -67,15 +66,6 @@ export async function planVersion(
   if (!bump) return { current, files: [] };
 
   const next = bumpVersion(current, bump);
-  const lockfiles = await readLockfiles(cwd);
-  const files = lockfiles.map(({ path, content }) => ({
-    path,
-    content: updateLockfile(path, content, next),
-  }));
-  manifest.version = next;
-  files.unshift({
-    path: packagePath,
-    content: formatJson(manifest, packageText),
-  });
-  return { current, next, bump, files };
+  // Metadata and lockfiles are owned by the configured package-manager command.
+  return { current, next, bump, files: [] };
 }

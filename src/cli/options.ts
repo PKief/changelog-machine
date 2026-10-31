@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { parseArgs } from 'node:util';
+import { validateBumpCommand } from '../version/command.js';
 
 const help = `Usage: changelog-machine [options]
 
@@ -8,6 +9,7 @@ Creates a complete changelog when the file does not exist.
 
   --full                      Replace the entire CHANGELOG.md from Git history
   --bump                      Infer version; update package metadata and changelog
+  --bump-command <command>    Trusted shell command containing {version} (requires --bump)
   --dry-run                   Preview without writing any files
   --output <path>              Changelog destination (default: CHANGELOG.md)
   --repo-url <url>             Repository URL for links
@@ -22,11 +24,12 @@ Requires Node 24+ and Git. Never fetches, commits, tags, pushes or publishes.
 export type Flags = ReturnType<typeof parseFlags>;
 
 export function parseFlags(args: string[]) {
-  return parseArgs({
+  const flags = parseArgs({
     args,
     options: {
       full: { type: 'boolean' },
       bump: { type: 'boolean' },
+      'bump-command': { type: 'string' },
       'dry-run': { type: 'boolean' },
       output: { type: 'string' },
       'repo-url': { type: 'string' },
@@ -37,6 +40,11 @@ export function parseFlags(args: string[]) {
     },
     allowPositionals: false,
   }).values;
+  if (flags['bump-command'] !== undefined) {
+    if (!flags.bump) throw new Error('--bump-command requires --bump');
+    validateBumpCommand(flags['bump-command']);
+  }
+  return flags;
 }
 
 export async function showInformation(flags: Flags): Promise<boolean> {

@@ -26,6 +26,7 @@ npx changelog-machine --bump           # Update package metadata and release cha
 | --- | --- |
 | `--full` | Rebuild the entire changelog |
 | `--bump` | Infer and apply a version bump |
+| `--bump-command <command>` | Override the metadata update command; requires `--bump` and `{version}` |
 | `--dry-run` | Preview without writing |
 | `--output <path>` | Set the changelog destination |
 | `--repo-url <url>` | Override repository links with an HTTPS URL |
@@ -110,15 +111,30 @@ The highest-impact commit since the latest release wins:
 | `fix:` or `perf:` | Patch |
 | Other types | None |
 
-- Updates `package.json`, an existing npm lockfile (versions 1–3), and the changelog with `## v<next-version>`. No Git tag is needed to prepare that section; the CLI does not create one.
-- Leaves dependency versions unchanged.
+- Calculates the exact next version, then runs `npm version <next-version> --no-git-tag-version --ignore-scripts` by default. npm owns `package.json` and its lockfiles; changelog-machine does not parse or restrict lockfile formats. npm must be available on `PATH` unless a custom command is supplied.
+- Writes the release changelog with `## v<next-version>` only after the command succeeds and `package.json` contains the planned version. No Git tag is needed to prepare that section.
+- The default command disables lifecycle scripts and Git commit/tag creation.
 - Requires the latest tag to match the package version; repeated bumps fail.
 - Without tags, analyzes all commits against the current package version.
-- Prerelease promotion, Yarn/pnpm lockfiles, and workspaces are unsupported.
+- Prerelease promotion and workspace version orchestration are unsupported. Non-npm metadata and lockfiles can be maintained by a custom command.
 - `--bump --full` rebuilds historical sections too. Without `--full`, older sections remain unchanged. `--output` also works with bumps; `--dry-run` previews without writing. No release-worthy commits means no file changes.
 - After a successful bump, commit and create the matching version tag before another incremental update or bump.
 
-Files are staged first and replaced atomically per file—not as a multi-file transaction.
+### Custom package managers
+
+```sh
+changelog-machine --bump \
+  --bump-command='bun pm version {version} --no-git-tag-version --ignore-scripts'
+```
+
+Use `{version}` for the exact calculated version, not a relative bump such as `patch`. Every occurrence is replaced. Commands run in the repository directory through the system shell, with output sent to stderr. Shell syntax and executable availability depend on your platform.
+
+`--bump-command` is **trusted, arbitrary shell input**. You are responsible for making it update `package.json` and the relevant lockfiles without commits, tags, pushes, publishing, or lifecycle side effects. npm does not maintain Bun, pnpm, or Yarn lockfiles; use a command or wrapper script appropriate to your package manager. The tool verifies the resulting package version, but cannot verify arbitrary lockfile contents or prevent custom-command side effects.
+
+`--dry-run` prints the planned command to stderr and changelog to stdout without executing the command. No release-worthy commits means no command execution.
+
+Changelog destinations are validated and temporary files staged before executing the command. Command failures or version mismatches leave the existing changelog untouched. Metadata changes made by a command are **not rolled back**; inspect repository changes before retrying. A failure while replacing the staged changelog can also leave metadata updated without the changelog; updates are not a multi-file transaction.
+
 
 ## API
 
@@ -142,7 +158,7 @@ const contributors = await resolveContributors(
 const enriched = renderMarkdown(releases, { repositoryUrl, contributors });
 ```
 
-Also exports `parseCommit`, `recommendedBump`, `planVersion`, and TypeScript types.
+Also exports `parseCommit`, `recommendedBump`, `planVersion`, and TypeScript types. `planVersion` is read-only: it calculates `current`, `next`, and `bump`; its `files` array is now empty because metadata updates are delegated to a command.
 Pass a boundary tag to `getReleases(cwd, tag)` for incremental history.
 The API does not write files. Explicit GitLab profiles can be supplied to the renderer.
 
